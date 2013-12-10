@@ -18,6 +18,7 @@ import io.liveoak.container.deploy.ConfigurationWatcher;
 import io.liveoak.container.deploy.DirectoryDeploymentManager;
 import io.liveoak.container.interceptor.InterceptorHandler;
 import io.liveoak.container.interceptor.InterceptorManager;
+import io.liveoak.container.protocols.http.HttpRequestBodyHandler;
 import io.liveoak.container.protocols.http.HttpResourceRequestDecoder;
 import io.liveoak.container.protocols.http.HttpResourceResponseEncoder;
 import io.liveoak.container.protocols.local.LocalResourceResponseEncoder;
@@ -111,6 +112,10 @@ public class PipelineConfigurator {
         return this.interceptorManager;
     }
 
+    public String tempDir() {
+        return System.getProperty("java.io.tmpdir");
+    }
+
     public void switchToPureStomp(ChannelPipeline pipeline) {
         pipeline.remove(ProtocolDetector.class);
 
@@ -138,8 +143,12 @@ public class PipelineConfigurator {
         pipeline.remove(ProtocolDetector.class);
         pipeline.addLast(new HttpRequestDecoder());
         pipeline.addLast(new HttpResponseEncoder());
-        pipeline.addLast(new HttpObjectAggregator(1024 * 1024)); //TODO: Remove this to support chunked http
-        pipeline.addLast(new WebSocketHandshakerHandler(this));
+        //pipeline.addLast(new HttpObjectAggregator(1024 * 1024)); //TODO: Remove this to support chunked http
+        pipeline.addLast("ws-handshake", new WebSocketHandshakerHandler(this));
+    }
+
+    public void switchToWebSocketsHandshake(ChannelPipeline pipeline) {
+        pipeline.addBefore("ws-handshake", "aggregator", new HttpObjectAggregator(1024 * 1024));
     }
 
     public void switchToWebSockets(ChannelPipeline pipeline) {
@@ -183,6 +192,7 @@ public class PipelineConfigurator {
             pipeline.addLast("configuration-watcher", new ConfigurationWatcher(this.deploymentManager));
         }
         pipeline.addLast("subscription-watcher", new SubscriptionWatcher(this.subscriptionManager));
+        pipeline.addLast("http-requestBody-handler", new HttpRequestBodyHandler(this.codecManager));
         pipeline.addLast("object-handler", new ResourceHandler(this.container, this.workerPool));
         pipeline.addLast("error-handler", new ErrorHandler());
     }

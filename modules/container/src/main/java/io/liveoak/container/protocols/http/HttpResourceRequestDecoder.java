@@ -7,6 +7,7 @@ package io.liveoak.container.protocols.http;
 
 import io.liveoak.common.DefaultResourceParams;
 import io.liveoak.common.DefaultResourceRequest;
+import io.liveoak.common.codec.DefaultLazyResourceState;
 import io.liveoak.container.ReturnFieldsImpl;
 import io.liveoak.common.DefaultMediaTypeMatcher;
 import io.liveoak.common.codec.ResourceCodecManager;
@@ -19,12 +20,15 @@ import io.liveoak.spi.ResourceParams;
 import io.liveoak.spi.ResourcePath;
 import io.liveoak.spi.ReturnFields;
 import io.liveoak.spi.Sorting;
+import io.liveoak.spi.state.LazyResourceState;
 import io.liveoak.spi.state.ResourceState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -34,11 +38,14 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Bob McWhirter
  */
-public class HttpResourceRequestDecoder extends MessageToMessageDecoder<FullHttpRequest> {
+public class HttpResourceRequestDecoder extends MessageToMessageDecoder<DefaultHttpRequest> {
+
+    public static final String HTTP_REQUEST = "HTTP_REQUEST";
 
     public HttpResourceRequestDecoder(ResourceCodecManager codecManager) {
         this.codecManager = codecManager;
@@ -59,7 +66,7 @@ public class HttpResourceRequestDecoder extends MessageToMessageDecoder<FullHttp
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, FullHttpRequest msg, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, DefaultHttpRequest msg, List<Object> out) throws Exception {
 
         URI uri = new URI( msg.getUri() );
         String query = uri.getRawQuery();
@@ -89,6 +96,12 @@ public class HttpResourceRequestDecoder extends MessageToMessageDecoder<FullHttp
 
         ResourceParams params = DefaultResourceParams.instance(decoder.parameters());
 
+        // for cases when content is preset, and bypasses HttpRequestBodyHandler
+        ByteBuf content = null;
+        if (msg instanceof DefaultFullHttpRequest) {
+            content = ((DefaultFullHttpRequest) msg).content().retain();
+        }
+
         if (msg.getMethod().equals(HttpMethod.POST)) {
             String contentTypeHeader = msg.headers().get(HttpHeaders.Names.CONTENT_TYPE);
             MediaType contentType = new MediaType(contentTypeHeader);
@@ -96,13 +109,15 @@ public class HttpResourceRequestDecoder extends MessageToMessageDecoder<FullHttp
                     .resourceParams(params)
                     .mediaTypeMatcher(mediaTypeMatcher)
                     .requestAttribute(HttpHeaders.Names.AUTHORIZATION, msg.headers().get(HttpHeaders.Names.AUTHORIZATION))
-                    .resourceState(decodeState(contentType, msg.content()))
+                    .requestAttribute(HTTP_REQUEST, msg)
+                    .resourceState(new DefaultLazyResourceState(codecManager, contentType, content))
                     .build());
         } else if (msg.getMethod().equals(HttpMethod.GET)) {
             out.add(new DefaultResourceRequest.Builder(RequestType.READ, new ResourcePath(path))
                     .resourceParams(params)
                     .mediaTypeMatcher(mediaTypeMatcher)
                     .requestAttribute(HttpHeaders.Names.AUTHORIZATION, msg.headers().get(HttpHeaders.Names.AUTHORIZATION))
+                    .requestAttribute(HTTP_REQUEST, msg)
                     .pagination(decodePagination(params))
                     .returnFields(decodeReturnFields(params))
                     .sorting(decodeSorting(params))
@@ -114,16 +129,17 @@ public class HttpResourceRequestDecoder extends MessageToMessageDecoder<FullHttp
                     .resourceParams(params)
                     .mediaTypeMatcher(mediaTypeMatcher)
                     .requestAttribute(HttpHeaders.Names.AUTHORIZATION, msg.headers().get(HttpHeaders.Names.AUTHORIZATION))
-                    .resourceState(decodeState(contentType, msg.content()))
+                    .requestAttribute(HTTP_REQUEST, msg)
+                    .resourceState(new DefaultLazyResourceState(codecManager, contentType, content))
                     .build());
         } else if (msg.getMethod().equals(HttpMethod.DELETE)) {
             out.add(new DefaultResourceRequest.Builder(RequestType.DELETE, new ResourcePath(path))
                     .resourceParams(params)
                     .mediaTypeMatcher(mediaTypeMatcher)
                     .requestAttribute(HttpHeaders.Names.AUTHORIZATION, msg.headers().get(HttpHeaders.Names.AUTHORIZATION))
+                    .requestAttribute(HTTP_REQUEST, msg)
                     .build());
         }
-
     }
 
     private ReturnFields decodeReturnFields(ResourceParams params) {

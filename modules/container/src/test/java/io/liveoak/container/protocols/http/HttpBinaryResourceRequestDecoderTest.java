@@ -9,6 +9,7 @@ import io.liveoak.common.DefaultResourceRequest;
 import io.liveoak.common.codec.ResourceCodecManager;
 import io.liveoak.spi.RequestType;
 import io.liveoak.spi.state.BinaryResourceState;
+import io.liveoak.spi.state.LazyResourceState;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -47,11 +48,9 @@ public class HttpBinaryResourceRequestDecoderTest {
         assertThat(decoded.resourcePath().segments().get(1).name()).isEqualTo("data");
 
         assertThat(decoded.state()).isNotNull();
-        assertThat(decoded.state()).isInstanceOf(BinaryResourceState.class);
-
-        BinaryResourceState state = (BinaryResourceState) decoded.state();
-
-        assertThat(state.getBuffer().toString(Charset.defaultCharset())).isEqualTo("Some text to be saved!");
+        assertThat(decoded.state()).isInstanceOf(LazyResourceState.class);
+        LazyResourceState state = (LazyResourceState) decoded.state();
+        assertThat(state.contentAsByteBuf().toString(Charset.defaultCharset())).isEqualTo("Some text to be saved!");
     }
 
     @Test
@@ -66,11 +65,10 @@ public class HttpBinaryResourceRequestDecoderTest {
         assertThat(decoded.resourcePath().segments().get(2).name()).isEqualTo("file");
 
         assertThat(decoded.state()).isNotNull();
-        assertThat(decoded.state()).isInstanceOf(BinaryResourceState.class);
+        assertThat(decoded.state()).isInstanceOf(LazyResourceState.class);
+        LazyResourceState state = (LazyResourceState) decoded.state();
+        assertThat(state.contentAsByteBuf().toString(Charset.defaultCharset())).isEqualTo("Some updated text to be saved!");
 
-        BinaryResourceState state = (BinaryResourceState) decoded.state();
-
-        assertThat(state.getBuffer().toString(Charset.defaultCharset())).isEqualTo("Some updated text to be saved!");
     }
 
     protected DefaultResourceRequest decode(HttpMethod method, String uri, String body) {
