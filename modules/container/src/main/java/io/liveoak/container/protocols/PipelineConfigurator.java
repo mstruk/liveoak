@@ -178,6 +178,7 @@ public class PipelineConfigurator {
         pipeline.remove(WebSocketHandshakerHandler.class);
         pipeline.addLast("http-resourceRead-decoder", new HttpResourceRequestDecoder(this.codecManager));
         pipeline.addLast("http-resourceRead-encoder", new HttpResourceResponseEncoder(this.codecManager));
+        pipeline.addLast("http-requestBody-handler", new HttpRequestBodyHandler(this.codecManager));
         pipeline.addLast("interceptor", new InterceptorHandler( this.interceptorManager ) );
 
         if (container.hasResource("auth")) {
@@ -192,7 +193,6 @@ public class PipelineConfigurator {
             pipeline.addLast("configuration-watcher", new ConfigurationWatcher(this.deploymentManager));
         }
         pipeline.addLast("subscription-watcher", new SubscriptionWatcher(this.subscriptionManager));
-        pipeline.addLast("http-requestBody-handler", new HttpRequestBodyHandler(this.codecManager));
         pipeline.addLast("object-handler", new ResourceHandler(this.container, this.workerPool));
         pipeline.addLast("error-handler", new ErrorHandler());
     }
