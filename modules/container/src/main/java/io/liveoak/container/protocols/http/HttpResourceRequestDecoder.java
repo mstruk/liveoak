@@ -5,13 +5,16 @@
  */
 package io.liveoak.container.protocols.http;
 
+import java.net.URI;
+import java.util.List;
+
+import io.liveoak.common.DefaultMediaTypeMatcher;
 import io.liveoak.common.DefaultResourceParams;
 import io.liveoak.common.DefaultResourceRequest;
 import io.liveoak.common.codec.DefaultLazyResourceState;
-import io.liveoak.container.ReturnFieldsImpl;
-import io.liveoak.common.DefaultMediaTypeMatcher;
 import io.liveoak.common.codec.ResourceCodecManager;
 import io.liveoak.common.codec.UnsupportedMediaTypeException;
+import io.liveoak.container.ReturnFieldsImpl;
 import io.liveoak.spi.MediaType;
 import io.liveoak.spi.MediaTypeMatcher;
 import io.liveoak.spi.Pagination;
@@ -20,7 +23,6 @@ import io.liveoak.spi.ResourceParams;
 import io.liveoak.spi.ResourcePath;
 import io.liveoak.spi.ReturnFields;
 import io.liveoak.spi.Sorting;
-import io.liveoak.spi.state.LazyResourceState;
 import io.liveoak.spi.state.ResourceState;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,16 +31,11 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
-
-import java.net.URI;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Bob McWhirter
