@@ -49,6 +49,38 @@ public interface ResourceState {
 
     JsonNode removeProperty(String name);
 
+    /**
+     * Retreive a property value as String
+     *
+     * @param name The property name.
+     * @return The value of the property, as a String
+     * @throw RuntimeException if value of the named property is not a String
+     */
+    default String getPropertyAsString(String name) {
+        Object val = getProperty(name);
+        if (val == null) {
+            return null;
+        }
+        if (val instanceof String || val instanceof Number || val instanceof Boolean) {
+            return String.valueOf(val);
+        }
+        throw new RuntimeException("Value can't be returned as String: " + val + " [" + val.getClass() + "]");
+    }
+
+    default Integer getPropertyAsInteger(String name) {
+        Object val = getProperty(name);
+        if (val == null) {
+            return null;
+        }
+        if (val instanceof Integer || val instanceof Long || val instanceof Short) {
+            return ((Number) val).intValue();
+        }
+        if (val instanceof String) {
+            return Integer.valueOf((String) val);
+        }
+        throw new RuntimeException("Value can't be returned as Integer: " + val + " [" + val.getClass() + "]");
+    }
+
     void putProperty(String name, Object value);
 
     ObjectNode object();
