@@ -27,6 +27,7 @@ public class PgSqlTableResource implements Resource {
 
     private PgSqlRootResource parent;
     private String id;
+    private QueryResults results;
 
     public PgSqlTableResource(PgSqlRootResource root, String table) {
         this.parent = root;
@@ -47,10 +48,10 @@ public class PgSqlTableResource implements Resource {
     public void readProperties(RequestContext ctx, PropertySink sink) throws Exception {
 
         // perform select and store it for readMembers
-        QueryResults results = queryTable(id, null, ctx);
+        results = queryTable(id, null, ctx);
 
         // store to ctx attributes to pass on to readMembers
-        ctx.requestAttributes().setAttribute(QUERY_RESULTS, results);
+        //ctx.requestAttributes().setAttribute(QUERY_RESULTS, results);
 
         // here only set num of tables as size
         sink.accept("count", results.count());
@@ -62,7 +63,7 @@ public class PgSqlTableResource implements Resource {
 
     @Override
     public void readMembers(RequestContext ctx, ResourceSink sink) throws Exception {
-        QueryResults results = (QueryResults) ctx.requestAttributes().getAttribute(QUERY_RESULTS);
+        //QueryResults results = (QueryResults) ctx.requestAttributes().getAttribute(QUERY_RESULTS);
         for (Row row: results.rows()) {
             sink.accept(new PgSqlRowResource(this, row));
         }
@@ -80,35 +81,17 @@ public class PgSqlTableResource implements Resource {
         }
     }
 
+    QueryResults queryResults() {
+        return results;
+    }
+
     private QueryResults queryTable(String table, String id, RequestContext ctx) throws SQLException {
         try (Connection con = parent.getConnection()) {
             QueryBuilder qb = new QueryBuilder(parent.getCatalog());
-
-            try (PreparedStatement s = id == null
-                    ? qb.prepareSelectAllFromTable(con, table)
-                    : qb.prepareSelectFromTableWhereId(con, table, id) ) {
-
-                s.setMaxRows(ctx.pagination().limit());
-                try (ResultSet rs = s.executeQuery()) {
-                    ResultSetMetaData meta = rs.getMetaData();
-                    int count = meta.getColumnCount();
-
-                    ArrayList<String> columnNames = new ArrayList<>(count);
-                    for (int i = 0; i < count; i++) {
-                        columnNames.add(meta.getColumnName(i + 1));
-                    }
-
-                    LinkedList<Row> rows = new LinkedList<>();
-                    while (rs.next()) {
-                        ArrayList<Object> row = new ArrayList<>(count);
-                        for (int i = 0; i < count; i++) {
-                            row.add(rs.getObject(i + 1));
-                        }
-                        rows.add(new Row(columnNames, row));
-                    }
-
-                    return new QueryResults(columnNames, rows);
-                }
+            if (id == null) {
+                return qb.querySelectFromTable(ctx, con, table);
+            } else {
+                return qb.querySelectFromTableWhereIds(ctx, con, table, new String[] {id});
             }
         }
     }

@@ -12,7 +12,6 @@ import io.liveoak.pgsql.meta.PrimaryKey;
 import io.liveoak.pgsql.meta.Table;
 import io.liveoak.pgsql.meta.TableRef;
 import io.liveoak.spi.RequestContext;
-import io.liveoak.spi.resource.ResourceRef;
 import io.liveoak.spi.resource.async.PropertySink;
 import io.liveoak.spi.resource.async.Resource;
 
@@ -24,6 +23,11 @@ public class PgSqlRowResource implements Resource {
     private PgSqlTableResource parent;
     private String id;
     private Row row;
+
+    public PgSqlRowResource(PgSqlTableResource parent, String id) {
+        this.parent = parent;
+        this.id = id;
+    }
 
     public PgSqlRowResource(PgSqlTableResource parent, Row row) {
         this.parent = parent;
@@ -38,6 +42,10 @@ public class PgSqlRowResource implements Resource {
             sb.append(row.value(c.name()));
         }
         id = sb.toString();
+    }
+
+    public void row(Row row) {
+        this.row = row;
     }
 
     @Override
@@ -89,7 +97,7 @@ public class PgSqlRowResource implements Resource {
         // if there are any fks it's time to process them
         for (Map.Entry<ForeignKey, String[]> ent: fkMap.entrySet()) {
             String fkTable = ent.getKey().tableRef().name();
-            sink.accept(fkTable, new ResourceRef(
+            sink.accept(fkTable, new PgSqlResourceRef(
                     new PgSqlTableResource(parent.parent(), fkTable),
                     PrimaryKey.spliceId(ent.getValue())));
         }

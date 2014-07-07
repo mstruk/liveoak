@@ -85,7 +85,7 @@ public class PgSqlRootConfigResource extends DefaultRootResource {
 
         String dbName = state.getPropertyAsString("db");
         if (dbName == null) {
-            throw new InitializationException("Data base name not specified! Use \"db\": \"DATABASE_NAME\"");
+            throw new InitializationException("Database name not specified! Use \"db\": \"DATABASE_NAME\"");
         }
 
         String server = state.getPropertyAsString("server");
