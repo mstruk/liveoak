@@ -1,8 +1,6 @@
 package io.liveoak.spi.resource;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 
 import io.liveoak.spi.RequestContext;
 import io.liveoak.spi.resource.async.PropertySink;
@@ -61,9 +59,7 @@ public interface SynchronousResource extends Resource {
         ResourceState props = properties();
 
         if (props != null) {
-            for (String key : props.getPropertyNames() ) {
-                sink.accept(key, props.getProperty( key ) );
-            }
+            props.object().fieldNames().forEachRemaining(key -> sink.accept(key, props.getProperty(key)));
         }
 
         sink.close();

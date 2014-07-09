@@ -1,6 +1,7 @@
 
 package io.liveoak.common.codec.driver;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.liveoak.common.codec.NonEncodableValueException;
 import io.liveoak.common.codec.StateEncoder;
 import io.liveoak.spi.RequestContext;
@@ -9,10 +10,12 @@ import io.liveoak.spi.state.ResourceState;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
  * @author <a href="mailto:mwringe@redhat.com">Matt Wringe</a>
+ * @author Ken Finnigan
  */
 public class StateEncodingDriver extends AbstractEncodingDriver {
 
@@ -34,10 +37,14 @@ public class StateEncodingDriver extends AbstractEncodingDriver {
 
     @Override
     public void encode() throws Exception {
-        encoder().startResource(state());
-        encodeProperties(state());
-        encodeMembers(state());
-        encoder().endResource( state() );
+        encodeState(state());
+    }
+
+    protected void encodeState(ResourceState resourceState) throws Exception {
+        encoder().startResource(resourceState);
+        encodeProperties(resourceState);
+        encodeMembers(resourceState);
+        encoder().endResource(resourceState);
     }
 
     protected void encodeMembers(ResourceState resourceState) throws Exception {
@@ -51,11 +58,16 @@ public class StateEncodingDriver extends AbstractEncodingDriver {
     }
 
     protected void encodeProperties( ResourceState resourceState ) throws Exception {
-        if ( !resourceState.getPropertyNames().isEmpty() ) {
+        Iterator<String> fields = resourceState.object().fieldNames();
+
+        if (fields.hasNext()) {
             encoder().startProperties();
-            for ( String propertyName : resourceState.getPropertyNames() ) {
-                encodeProperty( propertyName, resourceState.getProperty( propertyName ) );
-            }
+
+            do {
+                String fieldName = fields.next();
+                encodeProperty(fieldName, resourceState.object().get(fieldName));
+            } while (fields.hasNext());
+
             encoder().endProperties();
         }
     }
@@ -70,14 +82,21 @@ public class StateEncodingDriver extends AbstractEncodingDriver {
         if (value instanceof ResourceState) {
             encodeState( ( ResourceState ) value );
         }
-        else if (value instanceof String) {
-            encoder().writeValue((String) value);
-        } else if (value instanceof Integer) {
-            encoder().writeValue((Integer) value);
-        } else if (value instanceof Double) {
-            encoder().writeValue((Double) value);
-        } else if (value instanceof Long) {
-            encoder().writeValue( ( Long ) value );
+        else if (value instanceof JsonNode) {
+            JsonNode node = (JsonNode)value;
+            if (node.isTextual()) {
+                encoder().writeValue(node.asText());
+            } else if (node.canConvertToInt()) {
+                encoder().writeValue(node.intValue());
+            } else if (node.isDouble()) {
+                encoder().writeValue(node.doubleValue());
+            } else if (node.canConvertToLong()) {
+                encoder().writeValue(node.asLong());
+            } else if (node.isBoolean()) {
+                encoder().writeValue(node.asBoolean());
+            } else {
+                throw new NonEncodableValueException(value);
+            }
         } else if (value instanceof Date ) {
             encoder().writeValue( ( Date ) value );
        //TODO: figure out when writing a link should be used....
@@ -87,8 +106,6 @@ public class StateEncodingDriver extends AbstractEncodingDriver {
 //        }
         } else if (value instanceof URI) {
             encoder().writeValue(((URI)value).getPath());
-        } else if (value instanceof Boolean) {
-            encoder().writeValue( ( Boolean ) value );
         } else if (value instanceof Map ) {
             encoder().writeValue( ( Map ) value );
         } else if (value instanceof Collection ) {
@@ -98,14 +115,6 @@ public class StateEncodingDriver extends AbstractEncodingDriver {
         } else {
             throw new NonEncodableValueException(value);
         }
-    }
-
-    protected void encodeState(ResourceState resourceState) throws Exception {
-        encoder().startResource( resourceState );
-        encodeProperties( resourceState );
-        encodeMembers( resourceState );
-        encoder().endResource( resourceState );
-
     }
 
     protected void encodeList(Collection list) throws Exception {

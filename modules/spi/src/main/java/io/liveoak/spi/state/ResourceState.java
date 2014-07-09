@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat, Inc. and/or its affiliates.
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Eclipse Public License version 1.0, available at http://www.eclipse.org/legal/epl-v10.html
  */
@@ -7,7 +7,9 @@ package io.liveoak.spi.state;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Set;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Opaque state of a resource.
@@ -15,6 +17,7 @@ import java.util.Set;
  * <p>State objects are used to instill new state into a server-side resource.</p>
  *
  * @author Bob McWhirter
+ * @author Ken Finnigan
  */
 public interface ResourceState {
 
@@ -32,37 +35,27 @@ public interface ResourceState {
      */
     void id(String id);
 
-    void uri(URI uri);
-
     URI uri();
 
-    /**
-     * Add a property to the state.
-     *
-     * <p>Property values may be either simple scalar
-     * values, or complex {@link ResourceState} objects</p>
-     *
-     * @param name  The name of the property.
-     * @param value The value of the property.
-     */
-    void putProperty(String name, Object value);
+    void uri(URI uri);
 
     /**
-     * Retrieve a property value.
+     * Retrieve the property value.
      *
      * @param name The property name.
-     * @return The value of the property, as either a simple scalar, or as a
-     *         more complex {@link ResourceState}.
+     * @return The {@link com.fasterxml.jackson.databind.JsonNode} representing the property.
      */
-    Object getProperty(String name);
+    JsonNode getProperty(String name);
 
-    Object removeProperty(String name);
+    JsonNode removeProperty(String name);
 
-    Set<String> getPropertyNames();
+    void putProperty(String name, Object value);
 
-    void addMember(ResourceState member);
+    ObjectNode object();
+
+    void object(ObjectNode jsonNode);
 
     List<ResourceState> members();
 
-
+    void addMember(ResourceState member);
 }

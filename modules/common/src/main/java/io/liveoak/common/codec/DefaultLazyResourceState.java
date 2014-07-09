@@ -11,8 +11,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.liveoak.spi.MediaType;
 import io.liveoak.spi.state.LazyResourceState;
 import io.liveoak.spi.state.ResourceState;
@@ -62,9 +63,7 @@ public class DefaultLazyResourceState implements LazyResourceState {
                     // (UpdateStep.createResponder()#noSuchResource() relies on this as well)
                     if (old != null) {
                         delegate.id(old.id());
-                        for (String name: old.getPropertyNames()) {
-                            delegate.putProperty(name, old.getProperty(name));
-                        }
+                        old.object().fieldNames().forEachRemaining(name -> delegate.object().put(name, old.object().get(name)));
                     }
                 }
             }
@@ -90,13 +89,23 @@ public class DefaultLazyResourceState implements LazyResourceState {
     }
 
     @Override
+    public URI uri() {
+        return delegate().uri();
+    }
+
+    @Override
     public void uri(URI uri) {
         delegate().uri(uri);
     }
 
     @Override
-    public URI uri() {
-        return delegate().uri();
+    public JsonNode getProperty(String name) {
+        return delegate().getProperty(name);
+    }
+
+    @Override
+    public JsonNode removeProperty(String name) {
+        return delegate().removeProperty(name);
     }
 
     @Override
@@ -105,18 +114,13 @@ public class DefaultLazyResourceState implements LazyResourceState {
     }
 
     @Override
-    public Object getProperty(String name) {
-        return delegate().getProperty(name);
+    public ObjectNode object() {
+        return delegate().object();
     }
 
     @Override
-    public Object removeProperty(String name) {
-        return delegate().removeProperty(name);
-    }
-
-    @Override
-    public Set<String> getPropertyNames() {
-        return delegate().getPropertyNames();
+    public void object(ObjectNode jsonNode) {
+        delegate().object(jsonNode);
     }
 
     @Override
