@@ -203,11 +203,11 @@ public class PgSqlReadCollectionTest extends BasePgSqlTest {
 
     private void checkMember(ResourceState resourceState, Object[] objects) {
         int count = objects.length / 2;
-        assertThat(resourceState.getPropertyNames().size()).isEqualTo(count);
+        assertThat(resourceState.object().size()).isEqualTo(count - 3);
         for (int i = 0; i < count; i++) {
             String key = (String) objects[2*i];
             Object val = objects[2*i + 1];
-            assertThat(resourceState.getProperty(key)).isEqualTo(val).describedAs(key + " == " + val);
+            assertThat(resourceState.getProperty(key).).isEqualTo(val).describedAs(key + " == " + val);
         }
     }
 
