@@ -7,8 +7,10 @@ package io.liveoak.common;
 
 import io.liveoak.spi.ResourceParams;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
@@ -17,20 +19,20 @@ import java.util.Map;
  */
 public class DefaultResourceParams implements ResourceParams {
 
-    public static ResourceParams instance(Map<String, List<String>> params) {
+    public static ResourceParams instance(Map<String, Deque<String>> params) {
         if (params == null || params.size() == 0) {
             return NONE;
         }
         return new DefaultResourceParams(params);
     }
 
-    private final Map<String, List<String>> params;
+    private final Map<String, Deque<String>> params;
 
     private DefaultResourceParams() {
         params = Collections.emptyMap();
     }
 
-    private DefaultResourceParams(Map<String, List<String>> params) {
+    private DefaultResourceParams(Map<String, Deque<String>> params) {
         this.params = params;
     }
 
@@ -43,15 +45,15 @@ public class DefaultResourceParams implements ResourceParams {
     }
 
     public String value(String name) {
-        List<String> values = params.get(name);
+        Deque<String> values = params.get(name);
         if (values != null && values.size() > 0) {
-            return values.get(0);
+            return values.getFirst();
         }
         return null;
     }
 
     public List<String> values(String name) {
-        return Collections.unmodifiableList(params.get(name));
+        return Collections.unmodifiableList(new ArrayList(params.get(name)));
     }
 
     public int intValue(String name, int def) {

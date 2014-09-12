@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 
 import io.liveoak.spi.MediaType;
-import io.netty.buffer.ByteBuf;
+import java.nio.ByteBuffer;
 import io.netty.handler.codec.http.multipart.FileUpload;
 
 /**
@@ -22,9 +22,9 @@ public interface LazyResourceState extends ResourceState {
 
     InputStream contentAsStream();
 
-    ByteBuf contentAsByteBuf();
+    byte [] contentAsByteBuffer();
 
-    void fileUpload(FileUpload fileUpload);
+    //void fileUpload(FileUpload fileUpload);
 
-    void content(ByteBuf content);
+    void content(byte [] content);
 }

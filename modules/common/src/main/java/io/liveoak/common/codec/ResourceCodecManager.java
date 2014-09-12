@@ -20,8 +20,6 @@ import io.liveoak.spi.ResourceResponse;
 import io.liveoak.spi.resource.async.BinaryResource;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.jboss.logging.Logger;
 
 /**
@@ -34,12 +32,12 @@ public class ResourceCodecManager {
         this.codecs.add(new CodecRegistration(mediaType, codec));
     }
 
-    public ResourceState decode(MediaType mediaType, ByteBuf buf) throws Exception {
+    public ResourceState decode(MediaType mediaType, byte [] buf) throws Exception {
         if (buf == null) {
-            buf = Unpooled.EMPTY_BUFFER;
+            buf = new byte[0];
         }
         if (MediaType.OCTET_STREAM.equals(mediaType)) {
-            return new DefaultBinaryResourceState(buf.retain());
+            return new DefaultBinaryResourceState(buf);
         }
 
         ResourceCodec codec = getResourceCodec(mediaType);

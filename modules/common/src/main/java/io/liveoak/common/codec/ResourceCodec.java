@@ -5,11 +5,11 @@
  */
 package io.liveoak.common.codec;
 
+import java.io.ByteArrayOutputStream;
+
 import io.liveoak.common.codec.driver.StateEncodingDriver;
 import io.liveoak.spi.RequestContext;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 /**
  * @author Bob McWhirter
@@ -30,17 +30,17 @@ public class ResourceCodec {
         return this.decoder != null;
     }
 
-    public ByteBuf encode(RequestContext ctx, ResourceState resourceState) throws Exception {
-        ByteBuf buffer = Unpooled.buffer();
+    public byte [] encode(RequestContext ctx, ResourceState resourceState) throws Exception {
         StateEncoder encoder = this.encoderClass.newInstance();
-        encoder.initialize(buffer);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        encoder.initialize(baos);
         StateEncodingDriver driver = new StateEncodingDriver(ctx, encoder, resourceState);
         driver.encode();
         driver.close();
-        return buffer;
+        return baos.toByteArray();
     }
 
-    public ResourceState decode(ByteBuf resource) throws Exception {
+    public ResourceState decode(byte [] resource) throws Exception {
         return this.decoder.decode(resource);
     }
 

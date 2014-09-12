@@ -70,7 +70,7 @@ public class FileResource implements FSResource, BinaryResource {
             if (result.succeeded()) {
                 AsyncFile asyncFile = result.result();
                 asyncFile.dataHandler((buffer) -> {
-                    sink.accept(buffer.getByteBuf());
+                    sink.accept(buffer.getByteBuf().nioBuffer());
                 });
                 asyncFile.endHandler((end) -> {
                     sink.close();

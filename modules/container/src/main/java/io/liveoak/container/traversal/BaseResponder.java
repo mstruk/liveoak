@@ -5,16 +5,15 @@
  */
 package io.liveoak.container.traversal;
 
+import java.util.List;
+
 import io.liveoak.common.DefaultResourceErrorResponse;
 import io.liveoak.common.DefaultResourceResponse;
-import io.liveoak.container.protocols.http.HttpRequestBodyHandler;
 import io.liveoak.spi.ResourceErrorResponse;
 import io.liveoak.spi.ResourceRequest;
 import io.liveoak.spi.ResourceResponse;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.resource.async.Responder;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
 import org.jboss.logging.Logger;
 
 /**
@@ -26,13 +25,13 @@ public class BaseResponder implements Responder {
 
     private static Logger log = Logger.getLogger(BaseResponder.class);
 
-    public BaseResponder(ResourceRequest inReplyTo, ChannelHandlerContext ctx) {
+    public BaseResponder(ResourceRequest inReplyTo, List<Object> out) {
         this.inReplyTo = inReplyTo;
-        this.ctx = ctx;
+        this.out = out;
     }
 
     BaseResponder createBaseResponder() {
-        return new BaseResponder(this.inReplyTo, this.ctx);
+        return new BaseResponder(this.inReplyTo, this.out);
     }
 
     ResourceRequest inReplyTo() {
@@ -41,145 +40,128 @@ public class BaseResponder implements Responder {
 
     @Override
     public void resourceRead(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.READ, resource));
+        out.add(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.READ, resource));
         resumeRead();
     }
 
     @Override
     public void resourceCreated(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.CREATED, resource));
+        out.add(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.CREATED, resource));
         resumeRead();
     }
 
     @Override
     public void resourceDeleted(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.DELETED, resource));
+        out.add(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.DELETED, resource));
         resumeRead();
     }
 
     @Override
     public void resourceUpdated(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.UPDATED, resource));
+        out.add(new DefaultResourceResponse(this.inReplyTo, ResourceResponse.ResponseType.UPDATED, resource));
         resumeRead();
     }
 
     @Override
     public void createNotSupported(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.CREATE_NOT_SUPPORTED));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.CREATE_NOT_SUPPORTED));
         resumeRead();
     }
 
     @Override
     public void readNotSupported(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.READ_NOT_SUPPORTED));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.READ_NOT_SUPPORTED));
         resumeRead();
     }
 
     @Override
     public void updateNotSupported(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.UPDATE_NOT_SUPPORTED));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.UPDATE_NOT_SUPPORTED));
         resumeRead();
     }
 
     @Override
     public void deleteNotSupported(Resource resource) {
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.DELETE_NOT_SUPPORTED));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.DELETE_NOT_SUPPORTED));
         resumeRead();
     }
 
     @Override
     public void noSuchResource(String id) {
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NO_SUCH_RESOURCE));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NO_SUCH_RESOURCE));
         resumeRead();
     }
 
     @Override
     public void resourceAlreadyExists(String id) {
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.RESOURCE_ALREADY_EXISTS));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.RESOURCE_ALREADY_EXISTS));
         resumeRead();
     }
 
     @Override
     public void internalError(String message) {
         log.error(message, new RuntimeException("Stack trace: "));
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.INTERNAL_ERROR, message));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.INTERNAL_ERROR, message));
         resumeRead();
     }
 
     @Override
     public void internalError(Throwable cause) {
         log.error("Internal error: ", cause);
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.INTERNAL_ERROR, cause));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.INTERNAL_ERROR, cause));
         resumeRead();
     }
 
     @Override
     public void invalidRequest(String message) {
         log.debug(message, new RuntimeException("Stack trace: "));
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NOT_ACCEPTABLE, message));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NOT_ACCEPTABLE, message));
         resumeRead();
     }
 
     @Override
     public void invalidRequest(Throwable cause) {
         log.debug("Invalid request: ", cause);
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NOT_ACCEPTABLE, cause));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NOT_ACCEPTABLE, cause));
         resumeRead();
     }
 
     @Override
     public void invalidRequest(String message, Throwable cause) {
         log.debug(message, cause);
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NOT_ACCEPTABLE, cause));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, ResourceErrorResponse.ErrorType.NOT_ACCEPTABLE, cause));
         resumeRead();
     }
 
     @Override
     public void error(ResourceErrorResponse.ErrorType errorType) {
         log.debug("error(): " + errorType);
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, errorType));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, errorType));
         resumeRead();
     }
 
     @Override
     public void error(ResourceErrorResponse.ErrorType errorType, String message) {
         log.debug("error(): " + errorType + ", message: " + message);
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, errorType, message));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, errorType, message));
         resumeRead();
     }
 
     @Override
     public void error(ResourceErrorResponse.ErrorType errorType, String message, Throwable cause) {
         log.debug("[IGNORED] error(): " + errorType + ", message: " + message + ", cause: ", cause);
-        this.ctx.writeAndFlush(new DefaultResourceErrorResponse(this.inReplyTo, errorType, message, cause));
+        out.add(new DefaultResourceErrorResponse(this.inReplyTo, errorType, message, cause));
         resumeRead();
     }
 
-    protected boolean canContinue() {
-        ChannelHandlerContext context = this.ctx.pipeline().context(RESOURCE_READ_DECODER);
-        return context != null;
-    }
-
-    protected void dispatchInvocation(Runnable invocation) {
-        ChannelHandlerContext context = this.ctx.pipeline().context(RESOURCE_READ_DECODER);
-        HttpRequestBodyHandler.Invocation completion = new HttpRequestBodyHandler.Invocation(invocation);
-        context.fireChannelRead(completion);
-        // signal we're ready to read some more.
-        context.read();
-    }
-
     protected void resumeRead() {
-        ChannelPipeline pipeline = ctx.pipeline();
-        if (pipeline == null) {
-            return;
-        }
-        ChannelHandlerContext context = pipeline.firstContext();
-        if (context == null) {
-            return;
-        }
-        context.read();
+        // noop
+    }
+
+    protected List<Object> output() {
+        return out;
     }
 
     private final ResourceRequest inReplyTo;
-    private final ChannelHandlerContext ctx;
+    private final List<Object> out;
 }

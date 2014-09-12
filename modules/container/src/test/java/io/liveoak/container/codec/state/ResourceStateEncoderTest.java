@@ -15,8 +15,6 @@ import io.liveoak.spi.RequestContext;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.state.ResourceRef;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.fest.assertions.Fail;
 import org.junit.Test;
 
@@ -33,8 +31,6 @@ public class ResourceStateEncoderTest {
 
     protected EncodingDriver createDriver(Resource resource, CompletableFuture<ResourceState> future) throws Exception {
         ResourceStateEncoder encoder = new ResourceStateEncoder();
-        ByteBuf buffer = Unpooled.buffer();
-        encoder.initialize(buffer);
         RootEncodingDriver driver = new RootEncodingDriver(new RequestContext.Builder().build(), encoder, resource, () -> {
             future.complete(encoder.root());
         });

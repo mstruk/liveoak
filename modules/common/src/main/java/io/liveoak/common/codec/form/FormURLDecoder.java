@@ -8,7 +8,6 @@ package io.liveoak.common.codec.form;
 import io.liveoak.common.codec.DefaultResourceState;
 import io.liveoak.common.codec.ResourceDecoder;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -23,14 +22,14 @@ public class FormURLDecoder implements ResourceDecoder {
     private static final Charset ENCODING = StandardCharsets.UTF_8;
 
     @Override
-    public ResourceState decode(ByteBuf resource) throws IOException {
+    public ResourceState decode(byte [] resource) throws IOException {
         return parse(resource);
     }
 
-    private ResourceState parse(ByteBuf resource) throws IOException {
+    private ResourceState parse(byte [] resource) throws IOException {
         DefaultResourceState state = new DefaultResourceState();
 
-        String content = resource.toString(ENCODING);
+        String content = new String(resource, ENCODING);
         String[] pairs = content.split("&");
         if(pairs.length > 0) {
             for(String pair : pairs) {

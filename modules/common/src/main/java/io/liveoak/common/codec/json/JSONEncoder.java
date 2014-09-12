@@ -6,6 +6,7 @@
 package io.liveoak.common.codec.json;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
 
@@ -15,8 +16,6 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import io.liveoak.common.codec.NonEncodableValueException;
 import io.liveoak.common.codec.StateEncoder;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufOutputStream;
 
 /**
  * @author Bob McWhirter
@@ -31,9 +30,8 @@ public class JSONEncoder implements StateEncoder {
     }
 
     @Override
-    public void initialize(ByteBuf buffer) throws Exception {
+    public void initialize(OutputStream out) throws Exception {
         JsonFactory factory = new JsonFactory();
-        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
         this.generator = factory.createGenerator(out);
         this.generator.setPrettyPrinter(new DefaultPrettyPrinter("\\n"));
     }

@@ -5,7 +5,7 @@
  */
 package io.liveoak.spi.state;
 
-import io.netty.buffer.ByteBuf;
+import java.nio.ByteBuffer;
 
 /**
  * @author Bob McWhirter
@@ -23,8 +23,8 @@ public interface BinaryResourceState extends ResourceState {
     /**
      * Retrieve the buffer containing the binary resource content.
      *
-     * @return The {@link ByteBuf} containing the binary resource content.
+     * @return The {@link ByteBuffer} containing the binary resource content.
      */
-    ByteBuf getBuffer();
+    byte [] getBuffer();
 
 }

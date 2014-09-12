@@ -17,6 +17,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -30,23 +31,23 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public class JSONEncoderTest {
 
-    protected ByteBuf encode(ResourceState resourceState) throws Exception {
+    protected byte [] encode(ResourceState resourceState) throws Exception {
 
         JSONEncoder encoder = new JSONEncoder();
-        ByteBuf buffer = Unpooled.buffer();
-        encoder.initialize(buffer);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        encoder.initialize(out);
         StateEncodingDriver driver = new StateEncodingDriver(new RequestContext.Builder().build(), encoder, resourceState);
         driver.encode();
         driver.close();
-        return buffer;
+        return out.toByteArray();
     }
 
     @Test
     public void testEmptyObject() throws Exception {
         DefaultResourceState state = new DefaultResourceState("bob");
 
-        ByteBuf buffer = encode( state );
-        String encoded = buffer.toString(Charset.defaultCharset());
+        byte [] buffer = encode( state );
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> root = mapper.readValue(encoded, Map.class);
@@ -59,8 +60,8 @@ public class JSONEncoderTest {
         DefaultResourceState state = new DefaultResourceState("bob");
         state.uri( new URI("/bob") );
 
-        ByteBuf buffer = encode( state );
-        String encoded = buffer.toString(Charset.defaultCharset());
+        byte [] buffer = encode( state );
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> root = mapper.readValue(encoded, Map.class);
@@ -75,8 +76,8 @@ public class JSONEncoderTest {
         DefaultResourceState state = new DefaultResourceState("bob");
         state.putProperty("name", "Bob McWhirter");
 
-        ByteBuf buffer = encode(state);
-        String encoded = buffer.toString(Charset.defaultCharset());
+        byte [] buffer = encode(state);
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> root = mapper.readValue(encoded, Map.class);
@@ -91,8 +92,8 @@ public class JSONEncoderTest {
         state.uri( new URI("/bob") );
         state.putProperty("name", "Bob McWhirter");
 
-        ByteBuf buffer = encode(state);
-        String encoded = buffer.toString(Charset.defaultCharset());
+        byte [] buffer = encode(state);
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> root = mapper.readValue(encoded, Map.class);
@@ -116,9 +117,9 @@ public class JSONEncoderTest {
         bobState.putProperty("name", "Bob McWhirter");
         bobState.putProperty("dog", mosesState);
 
-        ByteBuf buffer = encode(bobState);
+        byte [] buffer = encode(bobState);
 
-        String encoded = buffer.toString(Charset.defaultCharset());
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         System.err.println(encoded);
 
@@ -145,9 +146,9 @@ public class JSONEncoderTest {
         bobState.putProperty("name", "Bob McWhirter");
         bobState.putProperty("dog", mosesState);
 
-        ByteBuf buffer = encode(bobState);
+        byte [] buffer = encode(bobState);
 
-        String encoded = buffer.toString(Charset.defaultCharset());
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         System.err.println(encoded);
 
@@ -182,9 +183,9 @@ public class JSONEncoderTest {
         dogs.add(onlyState);
         bobState.putProperty("dogs", dogs);
 
-        ByteBuf buffer = encode(bobState);
+        byte [] buffer = encode(bobState);
 
-        String encoded = buffer.toString(Charset.defaultCharset());
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(encoded);
@@ -222,8 +223,8 @@ public class JSONEncoderTest {
             put( "right", "missing" );
         }});
 
-        ByteBuf buffer = encode( mosesState );
-        String encoded = buffer.toString(Charset.defaultCharset());
+        byte [] buffer = encode( mosesState );
+        String encoded = new String(buffer, Charset.defaultCharset());
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(encoded);

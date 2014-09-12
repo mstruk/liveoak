@@ -10,10 +10,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import io.liveoak.spi.container.NetworkServer;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * Base networkServer capable of connecting a container to a network ports.
@@ -23,17 +19,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public abstract class AbstractNetworkServer extends AbstractServer implements NetworkServer {
 
     public AbstractNetworkServer() {
-        this.group = new NioEventLoopGroup();
-    }
-
-    @Override
-    protected EventLoopGroup eventLoopGroup() {
-        return this.group;
-    }
-
-    @Override
-    protected Class<? extends ServerChannel> channelClass() {
-        return NioServerSocketChannel.class;
     }
 
     @Override
@@ -63,5 +48,4 @@ public abstract class AbstractNetworkServer extends AbstractServer implements Ne
 
     private int port;
     private InetAddress host;
-    private EventLoopGroup group;
 }

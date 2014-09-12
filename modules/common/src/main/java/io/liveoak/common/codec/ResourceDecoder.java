@@ -6,10 +6,9 @@
 package io.liveoak.common.codec;
 
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 
 public interface ResourceDecoder {
-    ResourceState decode(ByteBuf resource) throws IOException;
+    ResourceState decode(byte [] resource) throws IOException;
 }

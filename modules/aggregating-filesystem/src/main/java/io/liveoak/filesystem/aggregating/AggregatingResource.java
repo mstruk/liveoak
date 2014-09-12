@@ -86,8 +86,9 @@ public class AggregatingResource implements BinaryResource {
     public void readContent(RequestContext ctx, BinaryContentSink sink) {
         try {
             for (File file: getFilesList()) {
+                // TODO: Khmm, this reads the whole file into memory !!!
                 Buffer buffer = manifest.vertx().fileSystem().readFileSync(file.getPath());
-                sink.accept(buffer.getByteBuf());
+                sink.accept(buffer.getByteBuf().nioBuffer());
             }
         } catch (Exception e) {
             log.debug("Failed to serve content: " + ctx.resourcePath(), e);

@@ -7,8 +7,6 @@ package io.liveoak.container.codec.form;
 
 import io.liveoak.common.codec.form.FormURLDecoder;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -24,7 +22,7 @@ public class FormURLDecoderTest {
     protected ResourceState decode(String data) throws Exception {
 
         FormURLDecoder decoder = new FormURLDecoder();
-        ByteBuf buffer = Unpooled.wrappedBuffer(data.getBytes(Charset.defaultCharset()));
+        byte [] buffer = data.getBytes(Charset.defaultCharset());
         return decoder.decode(buffer);
     }
 

@@ -116,15 +116,15 @@ public class DroolsPolicyRootResourceTest extends AbstractResourceTestCase {
         // Request to /storage/some should be IGNORED for anonymous user, but allowed for user or admin in case that query contains username
         RequestContext.Builder storageReq = new RequestContext.Builder().requestType(RequestType.READ)
                 .resourcePath(new ResourcePath("/testApp/storage/some"));
-        Map<String, List<String>> params = new HashMap<>();
-        params.put("q", Arrays.asList("{\"completed\":\"false\",\"user\":\"john\"}"));
+        Map<String, Deque<String>> params = new HashMap<>();
+        params.put("q", new ArrayDeque(Arrays.asList("{\"completed\":\"false\",\"user\":\"john\"}")));
         storageReq.resourceParams(DefaultResourceParams.instance(params));
         assertAuthzDecision(storageReq.securityContext(anonymous), AuthzDecision.IGNORE);
         assertAuthzDecision(storageReq.securityContext(admin), AuthzDecision.ACCEPT);
         assertAuthzDecision(storageReq.securityContext(user), AuthzDecision.ACCEPT);
 
         // IGNORED for user if token from query is different from username
-        params.put("q", Arrays.asList("{\"completed\":\"false\",\"user\":\"otherUser\"}"));
+        params.put("q", new ArrayDeque(Arrays.asList("{\"completed\":\"false\",\"user\":\"otherUser\"}")));
         storageReq.resourceParams(DefaultResourceParams.instance(params));
         assertAuthzDecision(storageReq.securityContext(user), AuthzDecision.IGNORE);
 

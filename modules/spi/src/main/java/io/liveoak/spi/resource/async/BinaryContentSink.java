@@ -5,13 +5,12 @@
  */
 package io.liveoak.spi.resource.async;
 
-import io.netty.buffer.ByteBuf;
-
+import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
 /**
  * @author Bob McWhirter
  */
-public interface BinaryContentSink extends Consumer<ByteBuf>, AutoCloseable {
+public interface BinaryContentSink extends Consumer<ByteBuffer>, AutoCloseable {
     void close();
 }

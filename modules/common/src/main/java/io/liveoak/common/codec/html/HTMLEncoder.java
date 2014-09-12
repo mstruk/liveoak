@@ -5,6 +5,7 @@
  */
 package io.liveoak.common.codec.html;
 
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
 
@@ -15,8 +16,6 @@ import javax.xml.stream.XMLStreamException;
 
 import io.liveoak.common.codec.StateEncoder;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufOutputStream;
 
 /**
  * @author Bob McWhirter
@@ -24,9 +23,9 @@ import io.netty.buffer.ByteBufOutputStream;
 public class HTMLEncoder implements StateEncoder {
 
     @Override
-    public void initialize(ByteBuf buffer) throws Exception {
+    public void initialize(OutputStream out) throws Exception {
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        this.writer = factory.createXMLEventWriter(new ByteBufOutputStream(buffer));
+        this.writer = factory.createXMLEventWriter(out);
         this.eventFactory = XMLEventFactory.newFactory();
 
         startTag("html");

@@ -6,14 +6,13 @@
 package io.liveoak.common.codec;
 
 import io.liveoak.spi.MediaType;
-import io.netty.buffer.ByteBuf;
 
 /**
  * @author Bob McWhirter
  */
 public class EncodingResult {
 
-    public EncodingResult(MediaType mediaType, ByteBuf encoded) {
+    public EncodingResult(MediaType mediaType, byte [] encoded) {
         this.mediaType = mediaType;
         this.encoded = encoded;
     }
@@ -22,10 +21,10 @@ public class EncodingResult {
         return this.mediaType;
     }
 
-    public ByteBuf encoded() {
+    public byte [] encoded() {
         return this.encoded;
     }
 
     private MediaType mediaType;
-    private ByteBuf encoded;
+    private byte [] encoded;
 }

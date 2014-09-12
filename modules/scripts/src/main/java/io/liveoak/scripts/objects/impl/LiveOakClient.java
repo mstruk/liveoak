@@ -2,7 +2,9 @@ package io.liveoak.scripts.objects.impl;
 
 import java.net.URI;
 import java.net.URLDecoder;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,11 +161,11 @@ public class LiveOakClient implements LocalClient {
             parameters.remove("sort");
         }
 
-        Map<String, List<String>> parameterMap = new HashMap<>();
+        Map<String, Deque<String>> parameterMap = new HashMap<>();
         for (String name: parameters.keySet()) {
             Object value = parameters.get(name);
             if (value != null) {
-                parameterMap.put(name, Arrays.asList(value.toString()));
+                parameterMap.put(name, new ArrayDeque(Arrays.asList(value.toString())));
             }
         }
 

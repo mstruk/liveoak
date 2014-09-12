@@ -33,7 +33,7 @@ public class HttpBinaryResourceRequestDecoderTest {
     @Before
     public void setUp() {
         this.codecManager = new ResourceCodecManager();
-        this.channel = new EmbeddedChannel(new HttpResourceRequestDecoder(this.codecManager));
+        //this.channel = new EmbeddedChannel(new HttpResourceRequestDecoder(this.codecManager));
     }
 
     @Test
@@ -49,7 +49,7 @@ public class HttpBinaryResourceRequestDecoderTest {
         assertThat(decoded.state()).isNotNull();
         assertThat(decoded.state()).isInstanceOf(LazyResourceState.class);
         LazyResourceState state = (LazyResourceState) decoded.state();
-        assertThat(state.contentAsByteBuf().toString(Charset.defaultCharset())).isEqualTo("Some text to be saved!");
+        assertThat(new String(state.contentAsByteBuffer(), Charset.defaultCharset())).isEqualTo("Some text to be saved!");
     }
 
     @Test
@@ -66,7 +66,7 @@ public class HttpBinaryResourceRequestDecoderTest {
         assertThat(decoded.state()).isNotNull();
         assertThat(decoded.state()).isInstanceOf(LazyResourceState.class);
         LazyResourceState state = (LazyResourceState) decoded.state();
-        assertThat(state.contentAsByteBuf().toString(Charset.defaultCharset())).isEqualTo("Some updated text to be saved!");
+        assertThat(new String(state.contentAsByteBuffer(), Charset.defaultCharset())).isEqualTo("Some updated text to be saved!");
 
     }
 

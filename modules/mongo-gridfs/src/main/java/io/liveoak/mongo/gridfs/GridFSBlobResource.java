@@ -66,7 +66,7 @@ public class GridFSBlobResource extends GridFSResource implements BlockingResour
             if (result.succeeded()) {
                 AsyncFile asyncFile = result.result();
                 asyncFile.dataHandler((buffer) -> {
-                    sink.accept(buffer.getByteBuf());
+                    sink.accept(buffer.getByteBuf().nioBuffer());
                 });
                 asyncFile.endHandler((end) -> {
                     sink.close();

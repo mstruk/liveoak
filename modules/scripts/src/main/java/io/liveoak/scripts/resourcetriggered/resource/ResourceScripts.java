@@ -85,7 +85,7 @@ public class ResourceScripts implements Resource {
                             File sourceFile = new File(scriptDirectory.getPath() + File.separator + "/" + SOURCE_FILENAME);
                             if (sourceFile.exists()) {
                                 vertx.fileSystem().readFile(sourceFile.getPath(), (buffer) -> {
-                                    resourceScript.getScript().setScriptBuffer(buffer.result().getByteBuf());
+                                    resourceScript.getScript().setScriptBuffer(buffer.result().getBytes());
                                 });
                             }
                         }
@@ -218,7 +218,7 @@ public class ResourceScripts implements Resource {
         }
     }
 
-    public void writeSourceFile(String id, ByteBuf byteBuf) throws Exception {
+    public void writeSourceFile(String id, byte [] byteBuf) throws Exception {
         File scriptDirectory = new File(resourceDirectory.getPath() + File.separator + id);
         if (!scriptDirectory.exists()) {
             scriptDirectory.mkdir();

@@ -8,7 +8,6 @@ import io.liveoak.spi.SecurityContext;
 import io.liveoak.spi.container.Subscription;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpClient;
 import org.vertx.java.core.http.HttpClientRequest;
@@ -66,7 +65,7 @@ public class HttpSubscription implements Subscription {
         request.setChunked(true);
 
         RequestContext requestContext = new RequestContext.Builder().build();
-        ByteBuf encoded = codec.encode(requestContext, errorState);
+        byte [] encoded = codec.encode(requestContext, errorState);
         request.write(new Buffer(encoded));
         request.end();
     }
@@ -85,7 +84,7 @@ public class HttpSubscription implements Subscription {
         request.setChunked(true);
 
         RequestContext requestContext = new RequestContext.Builder().build();
-        ByteBuf encoded = codec.encode(requestContext, resourceResponse.state());
+        byte [] encoded = codec.encode(requestContext, resourceResponse.state());
         request.write(new Buffer(encoded));
         request.end();
     }
@@ -99,7 +98,7 @@ public class HttpSubscription implements Subscription {
         request.setChunked(true);
 
         RequestContext requestContext = new RequestContext.Builder().build();
-        ByteBuf encoded = codec.encode(requestContext, resourceResponse.state());
+        byte [] encoded = codec.encode(requestContext, resourceResponse.state());
         request.write(new Buffer(encoded));
         request.end();
     }

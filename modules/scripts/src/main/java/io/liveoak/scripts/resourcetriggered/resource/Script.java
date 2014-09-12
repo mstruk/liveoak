@@ -24,7 +24,7 @@ public class Script{
     private String target;          //required
     private int priority = 1;       //'1' by default
 
-    private ByteBuf scriptBuffer;   // the buffer which contains the script itself
+    private byte [] scriptBuffer;   // the buffer which contains the script itself
 
     private List<FUNCTIONS> provides; //List of functions the script provides.
 
@@ -50,7 +50,7 @@ public class Script{
         }
     }
 
-    protected Script(String id, String name, String description, boolean enabled, List<String> libraries, String target, int priority, ByteBuf scriptBuffer) {
+    protected Script(String id, String name, String description, boolean enabled, List<String> libraries, String target, int priority, byte [] scriptBuffer) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -67,7 +67,7 @@ public class Script{
         private boolean enabled = true;
         private List<String> libraries;
         private int priority = 1;
-        private ByteBuf scriptBuffer;
+        private byte [] scriptBuffer;
 
         public Builder(String id, String target) {
             this.id = id;
@@ -94,7 +94,7 @@ public class Script{
             return this;
         }
 
-        public Builder setScriptBuffer(ByteBuf scriptBuffer) {
+        public Builder setScriptBuffer(byte [] scriptBuffer) {
             this.scriptBuffer = scriptBuffer;
             return this;
         }
@@ -153,9 +153,9 @@ public class Script{
         this.target = target;
     }
 
-    public ByteBuf getScriptBuffer() {
+    public byte [] getScriptBuffer() {
         if (scriptBuffer != null) {
-            return scriptBuffer.copy();
+            return scriptBuffer.clone();
         } else {
             return null;
         }
@@ -164,13 +164,13 @@ public class Script{
     //TODO: remove ?
     public String getScriptBufferAsString() {
         if (getScriptBuffer() != null) {
-            return getScriptBuffer().toString(Charset.forName("UTF-8"));
+            return new String(getScriptBuffer(), Charset.forName("utf-8"));
         } else {
             return null;
         }
     }
 
-    public void setScriptBuffer(ByteBuf scriptBuffer) {
+    public void setScriptBuffer(byte [] scriptBuffer) {
         this.scriptBuffer = scriptBuffer;
         if (scriptBuffer != null) {
             analyseProvides();

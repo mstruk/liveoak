@@ -5,8 +5,7 @@
  */
 package io.liveoak.common.codec;
 
-import io.netty.buffer.ByteBuf;
-
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
 
@@ -15,7 +14,7 @@ import java.util.Map;
  */
 public interface Encoder<Obj> extends AutoCloseable {
 
-    void initialize(ByteBuf buffer) throws Exception;
+    void initialize(OutputStream out) throws Exception;
 
     void close() throws Exception;
 

@@ -16,8 +16,6 @@ import io.liveoak.container.interceptor.InterceptorManagerImpl;
 import io.liveoak.container.protocols.http.CORSHandler;
 import io.liveoak.container.protocols.http.CORSPreflightOptionsHandler;
 import io.liveoak.container.protocols.http.HttpRequestBodyHandler;
-import io.liveoak.container.protocols.http.HttpResourceRequestDecoder;
-import io.liveoak.container.protocols.http.HttpResourceResponseEncoder;
 import io.liveoak.container.protocols.local.LocalResourceResponseEncoder;
 import io.liveoak.container.protocols.websocket.WebSocketHandshakerHandler;
 import io.liveoak.container.protocols.websocket.WebSocketStompFrameDecoder;
@@ -182,8 +180,8 @@ public class PipelineConfigurator {
 
         pipeline.addLast("deflater", new HttpContentCompressor(1));
 
-        pipeline.addLast("http-resource-decoder", new HttpResourceRequestDecoder(this.codecManager));
-        pipeline.addLast("http-resource-encoder", new HttpResourceResponseEncoder(this.codecManager));
+        //pipeline.addLast("http-resource-decoder", new HttpResourceRequestDecoder(this.codecManager));
+        //pipeline.addLast("http-resource-encoder", new HttpResourceResponseEncoder(this.codecManager));
         pipeline.addLast("http-request-body-handler", new HttpRequestBodyHandler());
         pipeline.addLast("interceptor", new InterceptorHandler("http", this.interceptorManager));
         pipeline.addLast("request-context-disposer", new RequestContextDisposerHandler());

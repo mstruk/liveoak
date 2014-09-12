@@ -7,13 +7,10 @@ package io.liveoak.container.server;
 
 import io.liveoak.spi.container.Server;
 import io.liveoak.container.protocols.PipelineConfigurator;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
-import io.netty.util.concurrent.Future;
+import io.undertow.Undertow;
+import io.undertow.server.HttpHandler;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 /**
@@ -26,8 +23,7 @@ public abstract class AbstractServer implements Server {
     public AbstractServer() {
     }
 
-    protected abstract EventLoopGroup eventLoopGroup();
-    protected abstract Class<? extends ServerChannel> channelClass();
+    private Undertow server;
     public abstract SocketAddress localAddress();
 
     public void pipelineConfigurator(PipelineConfigurator pipelineConfigurator) {
@@ -44,15 +40,19 @@ public abstract class AbstractServer implements Server {
      * @throws InterruptedException If interrupted before completely starting.
      */
     public void start() throws InterruptedException {
-        ServerBootstrap serverBootstrap = new ServerBootstrap();
-        serverBootstrap
-                .channel(channelClass())
-                .group(eventLoopGroup())
-                .localAddress(localAddress())
-                //.handler( new DebugHandler( "server-handler" ) )
-                .childHandler(createChildHandler());
-        ChannelFuture future = serverBootstrap.bind();
-        future.sync();
+
+        SocketAddress address = localAddress();
+        if (address instanceof InetSocketAddress == false) {
+            throw new IllegalStateException("This server only supports InetSocketAddresses");
+        }
+        InetSocketAddress addr = (InetSocketAddress) address;
+
+        server = Undertow.builder()
+            .addHttpListener(addr.getPort(), addr.getHostString())
+            .setHandler(createHandler())
+                .build();
+
+        server.start();
     }
 
     /**
@@ -61,8 +61,7 @@ public abstract class AbstractServer implements Server {
      * @throws InterruptedException If interrupted before completely stopping.
      */
     public void stop() throws InterruptedException {
-        Future<?> future = eventLoopGroup().shutdownGracefully();
-        future.sync();
+        server.stop();
     }
 
     protected PipelineConfigurator getPipelineConfigurator() {
@@ -77,7 +76,7 @@ public abstract class AbstractServer implements Server {
      *
      * @return The channel-handler for the netowrk listener.
      */
-    protected abstract ChannelHandler createChildHandler();
+    protected abstract HttpHandler createHandler();
 
     private PipelineConfigurator pipelineConfigurator;
 

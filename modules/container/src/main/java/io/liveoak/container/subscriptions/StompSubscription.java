@@ -18,6 +18,7 @@ import io.liveoak.stomp.Headers;
 import io.liveoak.stomp.StompMessage;
 import io.liveoak.stomp.common.DefaultStompMessage;
 import io.liveoak.stomp.server.StompConnection;
+import io.netty.buffer.Unpooled;
 
 /**
  * @author Bob McWhirter
@@ -65,7 +66,7 @@ public class StompSubscription implements Subscription {
         message.headers().put("status", "" + status);
 
         RequestContext requestContext = new RequestContext.Builder().build();
-        message.content(this.codec.encode(requestContext, errorState));
+        message.content(Unpooled.copiedBuffer(this.codec.encode(requestContext, errorState)));
 
         this.connection.send(message);
     }
@@ -96,7 +97,7 @@ public class StompSubscription implements Subscription {
         RequestContext requestContext = new RequestContext.Builder().build();
 
 
-        message.content(this.codec.encode(requestContext, resourceResponse.state()));
+        message.content(Unpooled.copiedBuffer(this.codec.encode(requestContext, resourceResponse.state())));
         return message;
     }
 

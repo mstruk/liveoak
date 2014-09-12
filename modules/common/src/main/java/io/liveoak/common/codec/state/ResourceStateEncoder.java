@@ -5,6 +5,7 @@
  */
 package io.liveoak.common.codec.state;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -35,7 +36,7 @@ public class ResourceStateEncoder implements ResourceEncoder {
     }
 
     @Override
-    public void initialize(ByteBuf buffer) throws Exception {
+    public void initialize(OutputStream out) throws Exception {
         // nothing
     }
 

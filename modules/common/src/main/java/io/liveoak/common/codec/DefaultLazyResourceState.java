@@ -5,21 +5,19 @@
  */
 package io.liveoak.common.codec;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Set;
 
 import io.liveoak.spi.MediaType;
 import io.liveoak.spi.state.LazyResourceState;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.multipart.FileUpload;
+import io.undertow.server.HttpServerExchange;
 
 /**
  * @author <a href="mailto:marko.strukelj@gmail.com">Marko Strukelj</a>
@@ -27,10 +25,10 @@ import io.netty.handler.codec.http.multipart.FileUpload;
 public class DefaultLazyResourceState implements LazyResourceState {
 
     private final MediaType mediaType;
-    private ByteBuf buffer;
+    private HttpServerExchange exchange;
+    private byte [] buffer;
     private ResourceCodecManager mgr;
     private ResourceState delegate;
-    private FileUpload fileUpload;
     private boolean delegateFromFileUpload;
 
     public DefaultLazyResourceState(ResourceCodecManager mgr, MediaType mediaType) {
@@ -38,10 +36,10 @@ public class DefaultLazyResourceState implements LazyResourceState {
         this.mediaType = mediaType;
     }
 
-    public DefaultLazyResourceState(ResourceCodecManager mgr, MediaType mediaType, ByteBuf content) {
+    public DefaultLazyResourceState(ResourceCodecManager mgr, MediaType mediaType, HttpServerExchange exchange) {
         this.mgr = mgr;
         this.mediaType = mediaType;
-        this.buffer = content;
+        this.exchange = exchange;
     }
 
     private synchronized ResourceState delegate() {
@@ -49,24 +47,24 @@ public class DefaultLazyResourceState implements LazyResourceState {
             // delegate may exist already - created in-memory before fileUpload was set
             if (!delegateFromFileUpload) {
                 // if fileUpload is suddenly non-null we have to switch to using it
-                if (fileUpload != null) {
-                    if (!fileUpload.isInMemory()) {
-                        throw new RuntimeException("Received body is too big for memory!");
-                    }
-                    buffer = fileUpload.content();
-                    delegateFromFileUpload = true;
-                    ResourceState old = delegate;
-                    delegate = mgr.decode(mediaType, buffer);
+                //if (fileUpload != null) {
+                //    if (!fileUpload.isInMemory()) {
+                //        throw new RuntimeException("Received body is too big for memory!");
+                //    }
+                    //buffer = fileUpload.content();
+                    //delegateFromFileUpload = true;
+                    //ResourceState old = delegate;
+                    //delegate = mgr.decode(mediaType, buffer);
                     // copy id, and properties from old over new.
                     // without rewriting id it could be null - fatal.
                     // (UpdateStep.createResponder()#noSuchResource() relies on this as well)
-                    if (old != null) {
-                        delegate.id(old.id());
-                        for (String name: old.getPropertyNames()) {
-                            delegate.putProperty(name, old.getProperty(name));
-                        }
-                    }
-                }
+                    //if (old != null) {
+                    //    delegate.id(old.id());
+                    //    for (String name: old.getPropertyNames()) {
+                    //        delegate.putProperty(name, old.getProperty(name));
+                    //    }
+                    //}
+                //}
             }
 
             // this takes care of cases when fileUpload is null
@@ -74,7 +72,11 @@ public class DefaultLazyResourceState implements LazyResourceState {
                 delegate = mgr.decode(mediaType, buffer);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decode message: " + (buffer == null ? null : buffer.toString(Charset.forName("utf-8"))), e);
+            try {
+                throw new RuntimeException("Failed to decode message: " + (buffer == null ? null : new String(buffer, "utf-8")), e);
+            } catch (UnsupportedEncodingException impossible) {
+                throw new IllegalStateException("utf-8 not supported", impossible);
+            }
         }
         return delegate;
     }
@@ -136,11 +138,11 @@ public class DefaultLazyResourceState implements LazyResourceState {
      */
     @Override
     public long getContentLength() {
-        if (fileUpload != null) {
-            return fileUpload.length();
-        }
+        //if (fileUpload != null) {
+        //    return fileUpload.length();
+        //}
         if (buffer != null) {
-            return buffer.readableBytes();
+            return buffer.length;
         }
         return 0;
     }
@@ -163,7 +165,8 @@ public class DefaultLazyResourceState implements LazyResourceState {
      */
     @Override
     public boolean hasBigContent() {
-        return fileUpload != null && !fileUpload.isInMemory();
+        //return fileUpload != null && !fileUpload.isInMemory();
+        return false;
     }
 
     /**
@@ -173,11 +176,12 @@ public class DefaultLazyResourceState implements LazyResourceState {
      */
     @Override
     public File contentAsFile() {
-        try {
-            return fileUpload != null ? fileUpload.getFile() : null;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to retrieve fileUpload file: " + fileUpload, e);
-        }
+        //try {
+        //    return fileUpload != null ? fileUpload.getFile() : null;
+        //} catch (IOException e) {
+        //    throw new RuntimeException("Failed to retrieve fileUpload file: " + fileUpload, e);
+        //}
+        return null;
     }
 
     /**
@@ -187,11 +191,11 @@ public class DefaultLazyResourceState implements LazyResourceState {
      */
     @Override
     public InputStream contentAsStream() {
-        if (fileUpload != null) {
-            return new FileUploadInputStream(fileUpload);
-        }
+        //if (fileUpload != null) {
+        //    return new FileUploadInputStream(fileUpload);
+        //}
         if (buffer != null) {
-            return new ByteBufInputStream(buffer);
+            return new ByteArrayInputStream(buffer);
         }
         return new InputStream() {
             @Override
@@ -210,23 +214,23 @@ public class DefaultLazyResourceState implements LazyResourceState {
      * @return in-memory ByteBuf containing entire body
      */
     @Override
-    public ByteBuf contentAsByteBuf() {
-        if (fileUpload != null) {
-            return fileUpload.content();
-        }
+    public byte [] contentAsByteBuffer() {
+        //if (fileUpload != null) {
+            //return fileUpload.content();
+        //}
         if (buffer != null) {
-            return buffer.copy(0, buffer.readableBytes());
+            return buffer;
         }
-        return Unpooled.buffer();
+        return new byte[0];
     }
 
-    @Override
-    public void fileUpload(FileUpload fileUpload) {
-        this.fileUpload = fileUpload;
-    }
+    //@Override
+    //public void fileUpload(FileUpload fileUpload) {
+    //    this.fileUpload = fileUpload;
+    //}
 
     @Override
-    public void content(ByteBuf content) {
+    public void content(byte [] content) {
         this.buffer = content;
     }
 }

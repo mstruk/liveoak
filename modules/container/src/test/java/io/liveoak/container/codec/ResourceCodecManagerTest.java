@@ -16,8 +16,6 @@ import io.liveoak.common.codec.html.HTMLEncoder;
 import io.liveoak.common.codec.json.JSONDecoder;
 import io.liveoak.spi.MediaType;
 import io.liveoak.spi.ResourceResponse;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.junit.Test;
 
 /**
@@ -31,8 +29,7 @@ public class ResourceCodecManagerTest {
         manager.registerResourceCodec(MediaType.HTML, new ResourceCodec(HTMLEncoder.class, null));
 
         MediaType contentType = new MediaType("text/html");
-        ByteBuf buffer = Unpooled.copiedBuffer("<html></html>".getBytes());
-        manager.decode(contentType, buffer);
+        manager.decode(contentType, "<html></html>".getBytes());
     }
 
     @Test(expected = UnsupportedMediaTypeException.class)

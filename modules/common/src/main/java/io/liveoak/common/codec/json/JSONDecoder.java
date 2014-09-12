@@ -12,9 +12,8 @@ import io.liveoak.common.codec.ResourceDecoder;
 import io.liveoak.common.codec.DefaultResourceState;
 import io.liveoak.common.util.StringPropertyReplacer;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,8 +34,8 @@ public class JSONDecoder implements ResourceDecoder {
     }
 
     @Override
-    public ResourceState decode(ByteBuf resource) throws IOException {
-        return decode(() -> factory().createParser(new ByteBufInputStream(resource)));
+    public ResourceState decode(byte [] resource) throws IOException {
+        return decode(() -> factory().createParser(new ByteArrayInputStream(resource)));
     }
 
     public ResourceState decode(File resource) throws IOException {

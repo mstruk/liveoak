@@ -5,6 +5,7 @@
  */
 package io.liveoak.container.traversal;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -15,15 +16,14 @@ import io.liveoak.spi.resource.BlockingResource;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.resource.async.Responder;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.channel.ChannelHandlerContext;
 
 /**
  * @author Bob McWhirter
  */
 public class TraversingResponder extends BaseResponder {
 
-    public TraversingResponder(Executor executor, GlobalContext globalContext, ResourceRequest inReplyTo, ChannelHandlerContext ctx) {
-        super(inReplyTo, ctx);
+    public TraversingResponder(Executor executor, GlobalContext globalContext, ResourceRequest inReplyTo, List<Object> out) {
+        super(inReplyTo, out);
         this.executor = executor;
         this.currentResource = globalContext;
         this.plan = new TraversalPlan(inReplyTo.requestType(), inReplyTo.resourcePath());
@@ -67,8 +67,8 @@ public class TraversingResponder extends BaseResponder {
             }
 
             @Override
-            public Runnable invocation() {
-                return ref.get();
+            public List<Object> output() {
+                return TraversingResponder.this.output();
             }
         };
 

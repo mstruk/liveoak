@@ -68,7 +68,7 @@ public class HttpRequestBodyHandler extends MessageToMessageDecoder<Object> {
 
                 // TODO - not sure this is ever necessary - defensive coding
                 if (request.state() != null) {
-                    ((LazyResourceState) request.state()).fileUpload(fileUpload);
+                    //((LazyResourceState) request.state()).fileUpload(fileUpload);
                 } else {
                     fileUpload.delete();
                 }

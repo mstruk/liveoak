@@ -1,5 +1,7 @@
 package io.liveoak.scripts.resourcetriggered.resource;
 
+import java.nio.ByteBuffer;
+
 import io.liveoak.spi.MediaType;
 import io.liveoak.spi.RequestContext;
 import io.liveoak.spi.resource.async.BinaryContentSink;
@@ -38,7 +40,7 @@ public class ScriptFileResource implements BinaryResource {
     @Override
     public long contentLength() {
         if (parent.getScript() != null && parent.getScript().getScriptBuffer() != null) {
-            return parent.getScript().getScriptBuffer().readableBytes();
+            return parent.getScript().getScriptBuffer().length;
         } else {
             return 0;
         }
@@ -47,7 +49,7 @@ public class ScriptFileResource implements BinaryResource {
     @Override
     public void readContent(RequestContext ctx, BinaryContentSink sink) throws Exception {
         if (parent.getScript() != null) {
-            sink.accept(parent.getScript().getScriptBuffer());
+            sink.accept(ByteBuffer.wrap(parent.getScript().getScriptBuffer()));
         }
         sink.close();
     }

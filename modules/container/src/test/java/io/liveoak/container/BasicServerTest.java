@@ -10,9 +10,6 @@ import io.liveoak.spi.MediaType;
 import io.liveoak.spi.state.ResourceState;
 import io.liveoak.stomp.StompMessage;
 import io.liveoak.stomp.client.StompClient;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufOutputStream;
-import io.netty.buffer.Unpooled;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -27,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -71,20 +69,20 @@ public class BasicServerTest {
     }
 
     protected ResourceState decode(HttpResponse response) throws Exception {
-        ByteBuf buffer = Unpooled.buffer();
-        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         response.getEntity().writeTo(out);
         out.flush();
         out.close();
+        byte [] buffer = out.toByteArray();
         System.err.println("===================");
-        System.err.println(buffer.toString(Charset.defaultCharset()));
+        System.err.println(new String(buffer, Charset.defaultCharset()));
         System.err.println("===================");
         return this.system.codecManager().decode(MediaType.JSON, buffer);
     }
 
-    protected ResourceState decode(ByteBuf buffer) throws Exception {
+    protected ResourceState decode(byte [] buffer) throws Exception {
         System.err.println("===================");
-        System.err.println(buffer.toString(Charset.defaultCharset()));
+        System.err.println(new String(buffer, Charset.defaultCharset()));
         System.err.println("===================");
         return this.system.codecManager().decode(MediaType.JSON, buffer);
     }
@@ -245,7 +243,7 @@ public class BasicServerTest {
         StompMessage obj = bobCreationNotification.get(30000, TimeUnit.SECONDS);
         assertThat(obj).isNotNull();
 
-        ResourceState bobObjState = (ResourceState) decode(obj.content());
+        ResourceState bobObjState = (ResourceState) decode(obj.content().array());
         assertThat(bobObjState.getProperty("name")).isEqualTo("bob");
 
         assertThat(((ResourceState) state).getProperty("id")).isEqualTo(bobObjState.getProperty("id"));

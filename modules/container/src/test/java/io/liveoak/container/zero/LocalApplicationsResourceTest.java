@@ -1,5 +1,6 @@
 package io.liveoak.container.zero;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.concurrent.CompletableFuture;
@@ -70,20 +71,20 @@ public class LocalApplicationsResourceTest {
     }
 
     protected ResourceState decode(HttpResponse response) throws Exception {
-        ByteBuf buffer = Unpooled.buffer();
-        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         response.getEntity().writeTo(out);
         out.flush();
         out.close();
+        byte [] buffer = out.toByteArray();
         System.err.println("========= HttpResponse ==========");
-        System.err.println(buffer.toString(Charset.defaultCharset()));
+        System.err.println(new String(buffer, Charset.defaultCharset()));
         System.err.println("===================");
         return this.system.codecManager().decode(MediaType.LOCAL_APP_JSON, buffer);
     }
 
-    protected ResourceState decode(ByteBuf buffer) throws Exception {
+    protected ResourceState decode(byte [] buffer) throws Exception {
         System.err.println("========= ByteBuf ==========");
-        System.err.println(buffer.toString(Charset.defaultCharset()));
+        System.err.println(new String(buffer, Charset.defaultCharset()));
         System.err.println("===================");
         return this.system.codecManager().decode(MediaType.LOCAL_APP_JSON, buffer);
     }
@@ -216,7 +217,7 @@ public class LocalApplicationsResourceTest {
         StompMessage obj = appCreationNotification.get(30000, TimeUnit.SECONDS);
         assertThat(obj).isNotNull();
 
-        ResourceState appObjState = decode(obj.content());
+        ResourceState appObjState = decode(obj.content().array());
         assertThat(appObjState.getProperty("name")).isEqualTo("app1");
 
         assertThat(state.getProperty("id")).isEqualTo(appObjState.getProperty("id"));

@@ -5,10 +5,13 @@
  */
 package io.liveoak.container.server;
 
-import io.liveoak.container.protocols.ProtocolDetector;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.nio.NioSocketChannel;
+import io.liveoak.container.protocols.http.HttpResourceRequestHandler;
+
+import io.undertow.server.HttpHandler;
+import io.undertow.websockets.WebSocketConnectionCallback;
+import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
+import io.undertow.websockets.core.WebSocketChannel;
+import io.undertow.websockets.spi.WebSocketHttpExchange;
 
 public class UnsecureServer extends AbstractNetworkServer {
 
@@ -16,11 +19,13 @@ public class UnsecureServer extends AbstractNetworkServer {
         super();
     }
 
-    protected ChannelHandler createChildHandler() {
-        return new ChannelInitializer<NioSocketChannel>() {
-            protected void initChannel(NioSocketChannel ch) throws Exception {
-                ch.pipeline().addLast("protocol-detector", new ProtocolDetector(getPipelineConfigurator()));
+    @Override
+    protected HttpHandler createHandler() {
+        return new WebSocketProtocolHandshakeHandler(new WebSocketConnectionCallback() {
+            @Override
+            public void onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel) {
+                // todo
             }
-        };
+        }, new HttpResourceRequestHandler(pipelineConfigurator().globalContext(), pipelineConfigurator().codecManager(), pipelineConfigurator().workerPool()));
     }
 }

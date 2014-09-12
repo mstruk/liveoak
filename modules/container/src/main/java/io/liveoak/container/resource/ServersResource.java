@@ -2,7 +2,7 @@ package io.liveoak.container.resource;
 
 import java.util.List;
 
-import io.liveoak.container.server.LocalServer;
+//import io.liveoak.container.server.LocalServer;
 import io.liveoak.spi.LiveOak;
 import io.liveoak.spi.RequestContext;
 import io.liveoak.spi.container.NetworkServer;
@@ -37,8 +37,8 @@ public class ServersResource implements Resource {
         for (ServiceName name : names) {
             if (LiveOak.NETWORK_SERVER.equals(name.getParent())) {
                 sink.accept(new NetworkServerResource(this, name.getSimpleName(), (NetworkServer) this.serviceContainer.getService(name).getValue()));
-            } else if (LiveOak.LOCAL_SERVER.equals(name.getParent())) {
-                sink.accept(new LocalServerResource(this, name.getSimpleName(), (LocalServer) this.serviceContainer.getService(name).getValue()));
+            //} else if (LiveOak.LOCAL_SERVER.equals(name.getParent())) {
+            //    sink.accept(new LocalServerResource(this, name.getSimpleName(), (LocalServer) this.serviceContainer.getService(name).getValue()));
             }
         }
 

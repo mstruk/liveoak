@@ -158,7 +158,7 @@ public class ResourceScript implements Resource {
     public void createMember(RequestContext ctx, ResourceState state, Responder responder) throws Exception {
         if (state instanceof LazyResourceState) {
             LazyResourceState lazyResourceState = (LazyResourceState) state;
-            ByteBuf content = lazyResourceState.contentAsByteBuf();
+            byte [] content = lazyResourceState.contentAsByteBuffer();
 
             script.setScriptBuffer(content);
             parent.writeSourceFile(this.id(), script.getScriptBuffer());

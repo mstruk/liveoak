@@ -20,8 +20,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -116,48 +118,48 @@ public class DroolsPolicyTest {
         Assert.assertEquals(AuthzDecision.IGNORE, droolsPolicy.isAuthorized(request2.securityContext(john)));
         Assert.assertEquals(AuthzDecision.REJECT, droolsPolicy.isAuthorized(request2.securityContext(evil)));
 
-        Map<String, List<String>> req3params = new HashMap<>();
-        req3params.put("param1", Arrays.asList(new String[]{"foo"}));
-        req3params.put("param2", Arrays.asList(new String[]{"11"}));
+        Map<String, Deque<String>> req3params = new HashMap<>();
+        req3params.put("param1", new ArrayDeque(Arrays.asList("foo")));
+        req3params.put("param2", new ArrayDeque(Arrays.asList(new String[]{"11"})));
         RequestContext.Builder request3 = new RequestContext.Builder().requestType(RequestType.READ)
                 .resourcePath(new ResourcePath("/droolsTest/foo/bar")).resourceParams(DefaultResourceParams.instance(req3params));
         // Accepted because of rule2 (Both URI and parameter conditions match)
         Assert.assertEquals(AuthzDecision.ACCEPT, droolsPolicy.isAuthorized(request3.securityContext(john)));
         Assert.assertEquals(AuthzDecision.REJECT, droolsPolicy.isAuthorized(request3.securityContext(evil)));
 
-        Map<String, List<String>> req4params = new HashMap<>();
-        req4params.put("param1", Arrays.asList(new String[]{"foo"}));
-        req4params.put("param2", Arrays.asList(new String[]{"9"}));
+        Map<String, Deque<String>> req4params = new HashMap<>();
+        req4params.put("param1", new ArrayDeque(Arrays.asList(new String[]{"foo"})));
+        req4params.put("param2", new ArrayDeque(Arrays.asList(new String[]{"9"})));
         RequestContext.Builder request4 = new RequestContext.Builder().requestType(RequestType.READ)
                 .resourcePath(new ResourcePath("/droolsTest/foo/bar")).resourceParams(DefaultResourceParams.instance(req4params));
         // Ignored. Doesn't match rule2 because param2 is lower than 10
         Assert.assertEquals(AuthzDecision.IGNORE, droolsPolicy.isAuthorized(request4.securityContext(john)));
         Assert.assertEquals(AuthzDecision.REJECT, droolsPolicy.isAuthorized(request4.securityContext(evil)));
 
-        Map<String, List<String>> req5params = new HashMap<>();
-        req5params.put("param1", Arrays.asList(new String[]{"foo"}));
-        req5params.put("param2", Arrays.asList(new String[]{"baz"}));
-        req5params.put("param3", Arrays.asList(new String[]{"john"}));
+        Map<String, Deque<String>> req5params = new HashMap<>();
+        req5params.put("param1", new ArrayDeque(Arrays.asList(new String[]{"foo"})));
+        req5params.put("param2", new ArrayDeque(Arrays.asList(new String[]{"baz"})));
+        req5params.put("param3", new ArrayDeque(Arrays.asList(new String[]{"john"})));
         RequestContext.Builder request5 = new RequestContext.Builder().requestType(RequestType.READ)
                 .resourcePath(new ResourcePath("/droolsTest/foo/bar/baz")).resourceParams(DefaultResourceParams.instance(req5params));
         // Accepted because of rule3
         Assert.assertEquals(AuthzDecision.ACCEPT, droolsPolicy.isAuthorized(request5.securityContext(john)));
         Assert.assertEquals(AuthzDecision.REJECT, droolsPolicy.isAuthorized(request5.securityContext(evil)));
 
-        Map<String, List<String>> req6params = new HashMap<>();
-        req6params.put("param1", Arrays.asList(new String[]{"foo"}));
-        req6params.put("param2", Arrays.asList(new String[]{"baz"}));
-        req6params.put("param3", Arrays.asList(new String[]{"mary"}));
+        Map<String, Deque<String>> req6params = new HashMap<>();
+        req6params.put("param1", new ArrayDeque(Arrays.asList(new String[]{"foo"})));
+        req6params.put("param2", new ArrayDeque(Arrays.asList(new String[]{"baz"})));
+        req6params.put("param3", new ArrayDeque(Arrays.asList(new String[]{"mary"})));
         RequestContext.Builder request6 = new RequestContext.Builder().requestType(RequestType.READ)
                 .resourcePath(new ResourcePath("/droolsTest/foo/bar/baz")).resourceParams(DefaultResourceParams.instance(req6params));
         // Ignored. Doesn't match rule3 because param3 has different value than actual username (john)
         Assert.assertEquals(AuthzDecision.IGNORE, droolsPolicy.isAuthorized(request6.securityContext(john)));
         Assert.assertEquals(AuthzDecision.REJECT, droolsPolicy.isAuthorized(request6.securityContext(evil)));
 
-        Map<String, List<String>> req7params = new HashMap<>();
-        req7params.put("param1", Arrays.asList(new String[]{"foo"}));
-        req7params.put("param2", Arrays.asList(new String[]{"baaz"}));
-        req7params.put("param3", Arrays.asList(new String[]{"john"}));
+        Map<String, Deque<String>> req7params = new HashMap<>();
+        req7params.put("param1", new ArrayDeque(Arrays.asList(new String[]{"foo"})));
+        req7params.put("param2", new ArrayDeque(Arrays.asList(new String[]{"baaz"})));
+        req7params.put("param3", new ArrayDeque(Arrays.asList(new String[]{"john"})));
         RequestContext.Builder request7 = new RequestContext.Builder().requestType(RequestType.READ)
                 .resourcePath(new ResourcePath("/droolsTest/foo/bar/baz")).resourceParams(DefaultResourceParams.instance(req7params));
         // Ignored. Doesn't match rule3 because param2 has different value than the parsed value from regex from URI (baz)
@@ -196,34 +198,34 @@ public class DroolsPolicyTest {
 
 
         // Request allowed thanks to rule8 and sort parameter
-        Map<String, List<String>> req13params = new HashMap<>();
-        req13params.put("sort", Arrays.asList(new String[]{"user,name"}));
-        req13params.put("limit", Arrays.asList(new String[]{"10"}));
+        Map<String, Deque<String>> req13params = new HashMap<>();
+        req13params.put("sort", new ArrayDeque(Arrays.asList(new String[]{"user,name"})));
+        req13params.put("limit", new ArrayDeque(Arrays.asList(new String[]{"10"})));
         RequestContext.Builder request13 = new RequestContext.Builder().requestType(RequestType.READ)
                 .resourcePath(new ResourcePath("/droolsTest/bar")).resourceParams(DefaultResourceParams.instance(req13params));
         Assert.assertEquals(AuthzDecision.ACCEPT, droolsPolicy.isAuthorized(request13.securityContext(john)));
         Assert.assertEquals(AuthzDecision.REJECT, droolsPolicy.isAuthorized(request13.securityContext(evil)));
 
         // Should pass because of limit==5
-        req13params.put("sort", Arrays.asList(new String[]{"user,namee"}));
-        req13params.put("limit", Arrays.asList(new String[]{"5"}));
+        req13params.put("sort", new ArrayDeque(Arrays.asList(new String[]{"user,namee"})));
+        req13params.put("limit", new ArrayDeque(Arrays.asList(new String[]{"5"})));
         Assert.assertEquals(AuthzDecision.ACCEPT, droolsPolicy.isAuthorized(request13.securityContext(john)));
 
 
         // Should pass because of q
-        req13params.put("sort", Arrays.asList(new String[]{"user,namee"}));
-        req13params.put("limit", Arrays.asList(new String[]{"10"}));
-        req13params.put("q", Arrays.asList(new String[]{"{\"completed\":false}"}));
+        req13params.put("sort", new ArrayDeque(Arrays.asList(new String[]{"user,namee"})));
+        req13params.put("limit", new ArrayDeque(Arrays.asList(new String[]{"10"})));
+        req13params.put("q", new ArrayDeque(Arrays.asList(new String[]{"{\"completed\":false}"})));
         Assert.assertEquals(AuthzDecision.ACCEPT, droolsPolicy.isAuthorized(request13.securityContext(john)));
 
         // Shouldn't pass because anything from sort,limit or q can be applied
-        req13params.put("sort", Arrays.asList(new String[]{"user,namee"}));
-        req13params.put("limit", Arrays.asList(new String[]{"10"}));
-        req13params.put("q", Arrays.asList(new String[]{"{\"completed\":\"kokos\"}"}));
+        req13params.put("sort", new ArrayDeque(Arrays.asList(new String[]{"user,namee"})));
+        req13params.put("limit", new ArrayDeque(Arrays.asList(new String[]{"10"})));
+        req13params.put("q", new ArrayDeque(Arrays.asList(new String[]{"{\"completed\":\"kokos\"}"})));
         Assert.assertEquals(AuthzDecision.IGNORE, droolsPolicy.isAuthorized(request13.securityContext(john)));
 
         // This is passing thanks to rule9
-        req13params.put("q", Arrays.asList(new String[]{"{\"completed\":true}"}));
+        req13params.put("q", new ArrayDeque(Arrays.asList(new String[]{"{\"completed\":true}"})));
         Assert.assertEquals(AuthzDecision.ACCEPT, droolsPolicy.isAuthorized(request13.securityContext(john)));
     }
 }

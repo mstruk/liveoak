@@ -76,6 +76,6 @@ public class TraversalPlan {
 
         Responder responder();
 
-        Runnable invocation();
+        List<Object> output();
     }
 }

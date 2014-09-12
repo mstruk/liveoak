@@ -16,11 +16,8 @@ import io.liveoak.spi.ReturnFields;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.state.ResourceRef;
 import io.liveoak.spi.state.ResourceState;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.junit.Test;
 
-import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -32,8 +29,6 @@ public class EncoderReturnFieldsTest {
 
     protected EncodingDriver createDriver(Resource resource, String fieldsSpec, CompletableFuture<ResourceState> future) throws Exception {
         ResourceStateEncoder encoder = new ResourceStateEncoder();
-        ByteBuf buffer = Unpooled.buffer();
-        encoder.initialize(buffer);
         ReturnFields returnFields = ReturnFields.ALL;
         if (fieldsSpec != null && !fieldsSpec.trim().equals("")) {
             returnFields = new DefaultReturnFields(fieldsSpec);
