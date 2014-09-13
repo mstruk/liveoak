@@ -31,10 +31,10 @@ public class HttpResourceRequestHandler implements HttpHandler {
         Pipeline.Processor head = new HttpRequestProcessor(pipeline, codecManager);
         Pipeline.Processor tail = head;
 
-        Pipeline.Processor next = new ResourceRequestProcessor(pipeline, globalContext, workerPool);
+        Pipeline.Processor next = new ResourceRequestProcessor(pipeline, globalContext, workerPool, exchange);
         tail = tail.next(next);
 
-        next = new ResourceResponseBodyProcessor(pipeline, workerPool);
+        next = new ResourceResponseBodyProcessor(pipeline, workerPool, exchange);
         tail = tail.next(next);
 
         next = new HttpResponseProcessor(pipeline, exchange, codecManager);

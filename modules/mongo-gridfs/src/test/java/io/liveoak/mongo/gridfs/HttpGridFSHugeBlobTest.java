@@ -5,7 +5,7 @@
  */
 package io.liveoak.mongo.gridfs;
 
-import io.netty.handler.codec.http.HttpHeaders;
+import io.undertow.util.Headers;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -37,8 +37,8 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
 
         HttpPut put = new HttpPut(url);
         try {
-            put.setHeader(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
-            put.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            put.setHeader(Headers.CONTENT_TYPE_STRING, "image/jpeg");
+            put.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             InputStreamEntity entity = new InputStreamEntity(is, size, ContentType.create("text/plain", "UTF-8"));
             put.setEntity(entity);
@@ -111,7 +111,7 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
 
         HttpGet get = new HttpGet(url);
         try {
-            get.setHeader(HttpHeaders.Names.ACCEPT, ALL);
+            get.setHeader(Headers.ACCEPT_STRING, ALL);
 
             System.err.println("DO GET - " + get.getURI());
             CloseableHttpResponse result = httpClient.execute(get);
@@ -119,16 +119,21 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
             System.err.println("=============>>>");
             System.err.println(result);
 
+            HttpEntity resultEntity = result.getEntity();
+
             if (is == null) {
                 // expect 404
                 assertThat(result.getStatusLine().getStatusCode()).isEqualTo(404);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                resultEntity.writeTo(baos);
+                String resultStr = new String(baos.toByteArray());
+                System.err.println(resultStr);
                 System.err.println("\n<<<=============");
                 return;
             }
 
             assertThat(result.getStatusLine().getStatusCode()).isEqualTo(200);
-
-            HttpEntity resultEntity = result.getEntity();
             assertThat(resultEntity.getContentLength()).isGreaterThan(0);
             CountOutputStream counter = new CountOutputStream();
             resultEntity.writeTo(counter);
@@ -145,7 +150,7 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
     private void deleteBlob() throws IOException {
         HttpDelete get = new HttpDelete("http://localhost:8080/testApp/gridfs/john/vacation/mars_2038/beach.jpg");
         try {
-            get.setHeader(HttpHeaders.Names.ACCEPT, ALL);
+            get.setHeader(Headers.ACCEPT_STRING, ALL);
 
             System.err.println("DO DELETE - " + get.getURI());
             CloseableHttpResponse result = httpClient.execute(get);
@@ -163,8 +168,8 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
     private JsonObject putFileMeta(String url, JsonObject json) throws IOException {
         HttpPut put = new HttpPut(url);
         try {
-            put.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-            put.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            put.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+            put.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             StringEntity entity = new StringEntity(json.toString(), "utf-8");
             put.setEntity(entity);
@@ -199,7 +204,7 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
     private JsonObject getFileMeta(String url, int expectStatus) throws IOException {
         HttpGet get = new HttpGet(url);
         try {
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             CloseableHttpResponse result = httpClient.execute(get);
@@ -208,6 +213,11 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
             System.err.println(result);
 
             HttpEntity resultEntity = result.getEntity();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            resultEntity.writeTo(baos);
+
+            String resultStr = new String(baos.toByteArray());
+            System.err.println(resultStr);
 
             if (expectStatus == 404) {
                 System.err.println("\n<<<=============");
@@ -217,13 +227,7 @@ public class HttpGridFSHugeBlobTest extends AbstractGridFSTest {
                 return null;
             }
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            resultEntity.writeTo(baos);
-
-            String resultStr = new String(baos.toByteArray());
-            System.err.println(resultStr);
             JsonObject json = new JsonObject(resultStr);
-
             System.err.println("\n<<<=============");
 
             assertThat(resultEntity.getContentLength()).isGreaterThan(0);

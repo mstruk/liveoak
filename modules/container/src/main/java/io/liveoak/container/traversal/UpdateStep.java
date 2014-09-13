@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.liveoak.common.Constants;
 import io.liveoak.spi.resource.BlockingResource;
@@ -38,16 +39,19 @@ public class UpdateStep implements TraversalPlan.Step {
             throw new RuntimeException("exchange == null");
         }
 
+        boolean isBinary = resource instanceof BinaryResource;
+
         Pooled<ByteBuffer> extraBytes = ((HttpServerConnection) exchange.getConnection()).getExtraBytes();
 
         long bodyLen = exchange.getRequestContentLength();
 
-        boolean bodyFullyRead = extraBytes != null ? bodyLen <= extraBytes.getResource().remaining() : false;
+        boolean bodyFullyRead = extraBytes != null && bodyLen != -1 ? bodyLen <= extraBytes.getResource().remaining() : false;
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ChannelListener<StreamSourceChannel> bodyReadHandler = new ChannelListener<StreamSourceChannel>() {
 
             byte [] buff = new byte[4096];
+            AtomicLong total = new AtomicLong();
 
             @Override
             public void handleEvent(StreamSourceChannel channel) {
@@ -67,37 +71,76 @@ public class UpdateStep implements TraversalPlan.Step {
                                     baos.write(buff, 0, c);
                                 }
                             }
-                        } while (c > 0);
+                        } while (c > 0 && baos.size() < Constants.MAX_REQUEST_SIZE);
                     } finally {
                         pooled.free();
                     }
 
+                    if (baos.size() >= Constants.MAX_REQUEST_SIZE) {
+                        if (isBinary) {
+                            updateContent(channel);
+                        } else {
+                            context.responder().invalidRequest("Body exceeds size limit in bytes: " + Constants.MAX_REQUEST_SIZE);
+                        }
+                        return;
+                    }
+
                     // after we have read the body, we have to continue an invocation where we left off
                     if (c == -1 || exchange.isRequestComplete()) {
-                        ((LazyResourceState) context.state()).content(baos.toByteArray());
-
-                        // TODO this doesn't look right as it only completes TraversingResponder task
-                        // without also going through HttpResourceStateEncoder and HttpResourceResponseEncoder
-                        HttpHandler handler = new HttpHandler() {
-                            @Override
-                            public void handleRequest(HttpServerExchange exchange) throws Exception {
-                                resource.updateProperties(context.requestContext(), context.state(), context.responder());
-                                List<Object> output = context.output();
-                                Pipeline.instance(context.requestContext()).proceed(output.isEmpty() ? null : output.get(0));
-                            }
-                        };
-
-                        if (resource instanceof BlockingResource) {
-                            exchange.dispatch(handler);
+                        if (isBinary) {
+                            updateContent(channel);
                         } else {
-                            exchange.dispatch(SameThreadExecutor.INSTANCE, handler);
+
+                            ((LazyResourceState) context.state()).content(baos.toByteArray());
+
+                            HttpHandler handler = new HttpHandler() {
+                                @Override
+                                public void handleRequest(HttpServerExchange exchange) throws Exception {
+                                    resource.updateProperties(context.requestContext(), context.state(), context.responder());
+                                    List<Object> output = context.output();
+                                    Pipeline.instance(context.requestContext()).proceed(output.isEmpty() ? null : output.get(0));
+                                }
+                            };
+
+                            if (resource instanceof BlockingResource) {
+                                exchange.dispatch(handler);
+                            } else {
+                                exchange.dispatch(SameThreadExecutor.INSTANCE, handler);
+                            }
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println("Failed to handle channel event: ");
-                    e.printStackTrace();
-                    IoUtils.safeClose(channel);
-                    exchange.endExchange();
+                    context.responder().internalError(e);
+                    //IoUtils.safeClose(channel);
+                    //exchange.endExchange();
+                }
+            }
+
+            protected void updateContent(final StreamSourceChannel channel) {
+                HttpHandler handler = new HttpHandler() {
+                    @Override
+                    public void handleRequest(HttpServerExchange exchange) throws Exception {
+                        long offset = total.get();
+                        boolean complete = offset + baos.size() == bodyLen;
+                        ((BinaryResource) resource).updateContent(context.requestContext(), context.responder(),
+                                baos.toByteArray(), offset, complete);
+
+                        total.addAndGet(baos.size());
+                        baos.reset();
+                        channel.resumeReads();
+
+                        if (exchange.isRequestComplete()) {
+                            List<Object> output = context.output();
+                            Pipeline.instance(context.requestContext()).proceed(output.isEmpty() ? null : output.get(0));
+                        }
+                    }
+                };
+
+                if (resource instanceof BlockingResource) {
+                    channel.suspendReads();
+                    exchange.dispatch(handler);
+                } else {
+                    exchange.dispatch(SameThreadExecutor.INSTANCE, handler);
                 }
             }
         };
@@ -107,12 +150,18 @@ public class UpdateStep implements TraversalPlan.Step {
             throw new IOException(UndertowMessages.MESSAGES.requestChannelAlreadyProvided());
         } else {
             // determine if we have the body content fully buffered already - if it was small enough
-            if (bodyFullyRead) {
-                bodyReadHandler.handleEvent(channel);
-
+            if (resource instanceof BinaryResource) {
+                if (((BinaryResource) resource).willProcessUpdate(context.requestContext(), context.responder())) {
+                    channel.getReadSetter().set(bodyReadHandler);
+                    channel.resumeReads();
+                }
             } else {
-                channel.getReadSetter().set(bodyReadHandler);
-                channel.resumeReads();
+                if (bodyFullyRead) {
+                    bodyReadHandler.handleEvent(channel);
+                } else {
+                    channel.getReadSetter().set(bodyReadHandler);
+                    channel.resumeReads();
+                }
             }
         }
 

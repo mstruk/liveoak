@@ -16,14 +16,16 @@ import io.liveoak.spi.resource.BlockingResource;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.resource.async.Responder;
 import io.liveoak.spi.state.ResourceState;
+import io.undertow.server.HttpServerExchange;
 
 /**
  * @author Bob McWhirter
  */
 public class TraversingResponder extends BaseResponder {
 
-    public TraversingResponder(Executor executor, GlobalContext globalContext, ResourceRequest inReplyTo, List<Object> out) {
+    public TraversingResponder(HttpServerExchange exchange, Executor executor, GlobalContext globalContext, ResourceRequest inReplyTo, List<Object> out) {
         super(inReplyTo, out);
+        this.exchange = exchange;
         this.executor = executor;
         this.currentResource = globalContext;
         this.plan = new TraversalPlan(inReplyTo.requestType(), inReplyTo.resourcePath());
@@ -74,7 +76,7 @@ public class TraversingResponder extends BaseResponder {
 
         Runnable stepRunner = () -> {
             if (resource instanceof BlockingResource) {
-                this.executor.execute(() -> {
+                exchange.dispatch(executor, () -> {
                     try {
                         step.execute(stepContext, resource);
                     } catch (Throwable t) {
@@ -146,6 +148,6 @@ public class TraversingResponder extends BaseResponder {
     private int stepNumber = -1;
 
     private Executor executor;
-
+    private HttpServerExchange exchange;
     private Resource currentResource;
 }

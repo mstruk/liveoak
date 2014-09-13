@@ -6,8 +6,11 @@
 package io.liveoak.mongo.gridfs;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -31,6 +34,8 @@ import org.vertx.java.core.file.AsyncFile;
  * @author <a href="mailto:marko.strukelj@gmail.com">Marko Strukelj</a>
  */
 public class GridFSBlobResource extends GridFSResource implements BlockingResource, BinaryResource {
+
+    private static final java.lang.String GRIDFS_TEMP_FILE = "gridfs.tmp.file";
 
     public GridFSBlobResource(RequestContext ctx, GridFSDirectoryResource parent, String id, GridFSDBObject fileInfo, GridFSResourcePath path) {
         super(ctx, parent, id, fileInfo, path);
@@ -86,55 +91,53 @@ public class GridFSBlobResource extends GridFSResource implements BlockingResour
     }
 
     @Override
-    public boolean willProcessUpdate(RequestContext ctx, ResourceState state, Responder responder) throws Exception {
+    public boolean willProcessUpdate(RequestContext ctx, Responder responder) throws Exception {
         // no reason to reject reading the body
         return true;
     }
 
-    public void updateContent(RequestContext ctx, ResourceState state, Responder responder) throws Exception {
-        if (state instanceof LazyResourceState == false) {
-            responder.internalError("Expected state instanceof LazyResourceState, not " + state.getClass());
-        }
+    @Override
+    public void updateContent(RequestContext ctx, Responder responder, byte[] content, long offset, boolean complete) throws Exception {
 
         GridFSDBObject blob = fileInfo();
         boolean isNew = blob.getId() == null;
 
-        LazyResourceState request = (LazyResourceState) state;
-        if (request.hasBigContent()) {
-            File tmpFile = request.contentAsFile();
-            if (tmpFile != null) {
-                try {
-                    GridFSFilesPathItemResource response = pushToDB(ctx, request.getContentType(), blob, () -> { return tmpFile; });
-                    if (isNew) {
-                        responder.resourceCreated(response);
-                    } else {
-                        responder.resourceUpdated(response);
-                    }
-                } catch (Exception e) {
-                    responder.internalError(e);
+        // TODO rework this whole class so it supports persistent partial blobs
+        // for now use requestAttributes to store a temp file
+        File tmpFile = (File) ctx.requestAttributes().getAttribute(GRIDFS_TEMP_FILE);
+        if (tmpFile == null) {
+            tmpFile = getTempFile();
+            ctx.requestAttributes().setAttribute(GRIDFS_TEMP_FILE, tmpFile);
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw")) {
+            raf.seek(offset);
+            raf.write(content);
+        }
+
+        if (complete) {
+            MediaType contentType = (MediaType) ctx.requestAttributes().getAttribute("Content-Type"); // TODO: that's nasty - what about ctx.mediaType().toString()?
+
+            try (FileInputStream source = new FileInputStream(tmpFile)) {
+
+                GridFSFilesPathItemResource response = pushToDB(ctx, contentType, fileInfo(), () -> {
+                    return source;
+                });
+                if (isNew) {
+                    responder.resourceCreated(response);
+                } else {
+                    responder.resourceUpdated(response);
                 }
-            } else {
-                responder.internalError("No cache file for request: " + request);
-            }
-        } else {
-            InputStream stream = request.contentAsStream();
-            if (stream != null) {
-                try {
-                    GridFSFilesPathItemResource response = pushToDB(ctx, request.getContentType(), fileInfo(), () -> { return stream; });
-                    if (isNew) {
-                        responder.resourceCreated(response);
-                    } else {
-                        responder.resourceUpdated(response);
-                    }
-                } catch (Exception e) {
-                    responder.internalError(e);
-                }
-            } else {
-                responder.internalError("No Stream for request: " + request);
+            } catch (Exception e) {
+                responder.internalError(e);
+            } finally {
+                ctx.requestAttributes().removeAttribute(GRIDFS_TEMP_FILE);
+                Files.delete(tmpFile.toPath());
             }
         }
     }
 
+    @Override
     public void delete(RequestContext ctx, Responder responder) throws Exception {
         GridFSDBObject info = fileInfo();
         if (info.getId() == null) {

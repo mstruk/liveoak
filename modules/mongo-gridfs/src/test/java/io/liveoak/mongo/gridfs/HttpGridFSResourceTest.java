@@ -5,21 +5,19 @@
  */
 package io.liveoak.mongo.gridfs;
 
-import io.netty.handler.codec.http.HttpHeaders;
+import io.undertow.util.Headers;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
-import java.util.Arrays;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -34,8 +32,8 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
     public void testCreateReadBlob() throws Exception {
 
         HttpPut put = new HttpPut("http://localhost:8080/testApp/gridfs/john/vacation/italy_2013/beach.jpg");
-        put.setHeader(HttpHeaders.Names.CONTENT_TYPE, BLOB_CONTENT_TYPE);
-        put.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        put.setHeader(Headers.CONTENT_TYPE_STRING, BLOB_CONTENT_TYPE);
+        put.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String content = "01234567890123456789";
         StringEntity entity = new StringEntity(content, ContentType.create("text/plain", "UTF-8"));
@@ -83,7 +81,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // get blobs root for john
             HttpGet get = new HttpGet("http://localhost:8080/testApp/gridfs/john/.files?fields=" + URLEncoder.encode("*(*(*))", "utf-8"));
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -125,7 +123,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // get files root for john
             get = new HttpGet("http://localhost:8080/testApp/gridfs/john/.files?fields=" + URLEncoder.encode("*(*(*))", "utf-8"));
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -144,7 +142,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // get gridfs root - it returns name and version
             get = new HttpGet("http://localhost:8080/testApp/gridfs");
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -163,7 +161,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // get root root for john
             get = new HttpGet("http://localhost:8080/testApp/gridfs/john?fields=" + URLEncoder.encode("*(*(*))", "utf-8"));
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -182,7 +180,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // now read the blob
             get = new HttpGet("http://localhost:8080/testApp/gridfs/john/vacation/italy_2013/beach.jpg");
-            get.setHeader(HttpHeaders.Names.ACCEPT, ALL);
+            get.setHeader(Headers.ACCEPT_STRING, ALL);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -200,7 +198,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // and again via blob uri
             get = new HttpGet("http://localhost:8080" + blobJson.getObject("self").getString("href").replace(".files", ".blobs"));
-            get.setHeader(HttpHeaders.Names.ACCEPT, ALL);
+            get.setHeader(Headers.ACCEPT_STRING, ALL);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -220,7 +218,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // get file meta info directly
             get = new HttpGet("http://localhost:8080/testApp/gridfs/john/vacation/italy_2013/beach.jpg;meta");
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -239,7 +237,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // get files in directory
             get = new HttpGet("http://localhost:8080/testApp/gridfs/john/vacation/italy_2013");
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);
@@ -258,7 +256,7 @@ public class HttpGridFSResourceTest extends AbstractGridFSTest {
 
             // get expanded file infos of directory children
             get = new HttpGet("http://localhost:8080/testApp/gridfs/john/vacation/italy_2013?fields=" + URLEncoder.encode("*(*(*))", "utf-8"));
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             System.err.println("DO GET - " + get.getURI());
             result = httpClient.execute(get);

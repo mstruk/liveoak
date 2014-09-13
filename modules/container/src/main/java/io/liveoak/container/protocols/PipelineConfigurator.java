@@ -9,7 +9,6 @@ import io.liveoak.common.codec.ResourceCodecManager;
 import io.liveoak.container.ErrorHandler;
 import io.liveoak.container.RequestContextDisposerHandler;
 import io.liveoak.container.ResourceHandler;
-import io.liveoak.container.ResourceStateHandler;
 import io.liveoak.container.auth.SecuredStompServerContext;
 import io.liveoak.container.interceptor.InterceptorHandler;
 import io.liveoak.container.interceptor.InterceptorManagerImpl;
@@ -191,7 +190,7 @@ public class PipelineConfigurator {
 
         pipeline.addLast("subscription-watcher", new SubscriptionWatcher(this.subscriptionManager));
         //pipeline.addLast( new DebugHandler( "server-debug" ) );
-        pipeline.addLast("resource-state-handler", new ResourceStateHandler(this.workerPool));
+        //pipeline.addLast("resource-state-handler", new ResourceStateHandler(this.workerPool));
         pipeline.addLast("object-handler", new ResourceHandler(this.globalContext, this.workerPool));
         pipeline.addLast("error-handler", new ErrorHandler());
     }
@@ -202,7 +201,7 @@ public class PipelineConfigurator {
         pipeline.addLast("interceptor", new InterceptorHandler("local", this.interceptorManager));
         pipeline.addLast("request-context-disposer", new RequestContextDisposerHandler());
         pipeline.addLast(new SubscriptionWatcher(this.subscriptionManager));
-        pipeline.addLast(new ResourceStateHandler(this.workerPool));
+        //pipeline.addLast(new ResourceStateHandler(this.workerPool));
         pipeline.addLast(new ResourceHandler(this.globalContext, this.workerPool));
         //pipeline.addLast( new DebugHandler( "local-tail" ) );
     }

@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.undertow.util.Headers;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -94,8 +94,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
     private void testUpdateOrder() throws IOException {
         HttpPut put = new HttpPut("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders/014-1003095");
-        put.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        put.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        put.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        put.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
         // perform an update, omitting one-to-many relationships - only 'orders' table will be updated
         String json = "  {                                                                       \n" +
@@ -170,7 +170,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // make sure the item really doesn't exist any more
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/items/I39845355");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         response = getRequest(get);
         System.out.println(response);
@@ -183,7 +183,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         String query = "{total: {$gt: 30000}}";
 
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?q=" + URLEncoder.encode(query, "utf-8"));
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = getRequest(get);
         System.out.println(result);
@@ -192,7 +192,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         query = "{$or: [{create_date: {$gt: '2014-04-03'}}, {$not: {total: {$gt: 30000}}}]}";
 
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?q=" + URLEncoder.encode(query, "utf-8"));
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -202,7 +202,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         query = "{$and: [{create_date: {$lt: '2014-04-03'}}, {total: {$gt: 30000}}]}";
 
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?q=" + URLEncoder.encode(query, "utf-8"));
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -212,7 +212,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         query = "{create_date: {$lt: '2014-04-03'}, total: {$gt: 30000}}";
 
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?q=" + URLEncoder.encode(query, "utf-8"));
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -222,7 +222,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         query = "{'address.country_iso': 'UK'}";
 
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?q=" + URLEncoder.encode(query, "utf-8"));
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -232,7 +232,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         query = "{'items.name': 'The Gadget'}";
 
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?q=" + URLEncoder.encode(query, "utf-8"));
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -242,7 +242,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         query = "{'items.name': 'The Gadget', 'address.country_iso': 'UK'}";
 
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?q=" + URLEncoder.encode(query, "utf-8"));
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -256,8 +256,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // send the response as a POST to /_batch endpoint
         HttpPost post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=delete");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
 
         // first try to delete one table with dependencies so it should fail
@@ -275,7 +275,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // Check that there are still all the tables
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH);
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -357,8 +357,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         // unfulfilled dependencies.
         System.out.println("request: " + batch_two);
         post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=create");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
         result = postRequest(post, batch_two);
         System.out.println(result);
@@ -396,8 +396,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         System.out.println("request: " + batch_one);
 
         post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=create");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
         result = postRequest(post, batch_one);
         System.out.println(result);
@@ -476,7 +476,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         List<JsonNode> results = new LinkedList<>();
         for (String tableId: tableIds) {
             HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + tableId + ";schema");
-            get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+            get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
             String result = getRequest(get);
             System.out.println(result);
@@ -490,7 +490,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // get all orders
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?sort=id&fields=*(*,items(*))");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = getRequest(get);
         System.out.println(result);
@@ -557,8 +557,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // send the response as a POST to /_batch endpoint
         HttpPost post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=delete");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
         result = postRequest(post, result);
         System.out.println(result);
@@ -614,8 +614,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // now recreate them
         post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=create");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        get.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        get.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
         result = orders;
         result = postRequest(post, result);
         System.out.println(result);
@@ -632,8 +632,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
     private void testBulkUpdateNested() throws IOException {
 
         HttpPost post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=update");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
         // update orders by passing a collection object (container doesn't support top level arrays)
         String updatedOrders = "{                                                                \n" +
@@ -771,7 +771,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // get all orders, must be the same as the value of 'updatedOrders' - including 'addresses', and 'items'
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?sort=id&fields=*(*(*),items(*,attachments(*,-items),order),addresses(*," + schema + ".orders," + schema_two + ".orders))");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -782,8 +782,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // delete all orders
         post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=delete");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
 
         result = postRequest(post, updatedOrders + updatedOrdersB);
@@ -793,7 +793,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // check that orders are gone
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
         result = getRequest(get);
         System.out.println(result);
 
@@ -814,7 +814,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // check that items are gone
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/items");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
         result = getRequest(get);
         System.out.println(result);
 
@@ -836,7 +836,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // check that attachments are gone
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/attachments");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
         result = getRequest(get);
         System.out.println(result);
 
@@ -858,7 +858,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // check that addresses are intact
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/addresses");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
         result = getRequest(get);
         System.out.println(result);
 
@@ -886,8 +886,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // recreate orders, items, attachments using upsert
         post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/_batch?action=merge");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
 
 
         result = postRequest(post, updatedOrders + updatedOrdersB);
@@ -898,7 +898,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // check again current state of orders / items / attachments
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?sort=id&fields=*(*(*),items(*,attachments(*,-items),order),addresses(*," + schema + ".orders," + schema_two + ".orders))");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -909,8 +909,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
     private void testCreateAttachmentsCollection() throws IOException {
         HttpPost post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String json = "{                                                             \n" +
                 "  'id': 'attachments',                                              \n" +
@@ -997,7 +997,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
     private void testSortLimitAndOffset() throws IOException {
         // get orders with limit 1, offset 1, sorted by total
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?sort=total&offset=1&limit=1&fields=*(*)");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = getRequest(get);
         System.out.println(result);
@@ -1032,7 +1032,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         checkResult(result, expected);
 
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?sort=-total&offset=1&limit=1&fields=*(*)");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -1069,7 +1069,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
     private void testDeleteOrderItemsCollection() throws IOException {
         HttpDelete delete = new HttpDelete("http://localhost:8080/testApp/" + BASEPATH + "/items");
-        delete.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        delete.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = deleteRequest(delete);
         System.out.println(result);
@@ -1089,7 +1089,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
     private void testDeleteFirstOrderCascading() throws IOException {
         HttpDelete delete = new HttpDelete("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders/014-1003095?cascade");
-        delete.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        delete.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = deleteRequest(delete);
         System.out.println(result);
@@ -1104,7 +1104,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // query orders - should get back the second order only
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?fields=*(*)");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -1140,7 +1140,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
         // query order items - should get back no items
         get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/items?fields=*(*)");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -1162,7 +1162,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
     private void testReadOrdersExpanded() throws IOException {
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?sort=total&fields=*(*)");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = getRequest(get);
         System.out.println(result);
@@ -1218,7 +1218,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
     private void testReadOrdersDoubleExpanded() throws IOException {
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?fields=*(*(*))");
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = getRequest(get);
         System.out.println(result);
@@ -1321,7 +1321,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
     private void testInitialCollections() throws IOException {
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH);
-        get.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        get.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = getRequest(get);
         System.out.println(result);
@@ -1361,8 +1361,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
     private void testCreateItemsCollection() throws IOException {
 
         HttpPost post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String json = "{                                                             \n" +
                 "  'id': 'items',                                                    \n" +
@@ -1482,8 +1482,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
                 "}";
 
         HttpPost post = new HttpPost("http://localhost:8080" + endpoint);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = postRequest(post, json);
         System.out.println(result);
@@ -1522,8 +1522,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
                 "}";
 
         HttpPost post = new HttpPost("http://localhost:8080" + endpoint);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = postRequest(post, json);
         System.out.println(result);
@@ -1563,8 +1563,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
                 "}";
 
         HttpPost post = new HttpPost("http://localhost:8080" + endpoint);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = postRequest(post, json);
         System.out.println(result);
@@ -1602,8 +1602,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
                 "}";
 
         HttpPost post = new HttpPost("http://localhost:8080" + endpoint);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String result = postRequest(post, json);
         System.out.println(result);
@@ -1629,8 +1629,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
     private void testReCreateFirstOrderWithItems() throws IOException {
 
         HttpPost post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders?fields=*,items(*)");
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String json = "{                                                                       \n" +
                 "  'id': '014-1003095',                                                        \n" +
@@ -1679,7 +1679,7 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
 
 
         HttpGet get = new HttpGet("http://localhost:8080/testApp/" + BASEPATH + "/" + schema_two + ".orders/014-1003095?fields=*,items(*),address");
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         result = getRequest(get);
         System.out.println(result);
@@ -1725,8 +1725,8 @@ public class HttpPgSqlTest extends BasePgSqlHttpTest {
         }
         // create three tables
         HttpPost post = new HttpPost("http://localhost:8080/testApp/" + BASEPATH);
-        post.setHeader(HttpHeaders.Names.CONTENT_TYPE, APPLICATION_JSON);
-        post.setHeader(HttpHeaders.Names.ACCEPT, APPLICATION_JSON);
+        post.setHeader(Headers.CONTENT_TYPE_STRING, APPLICATION_JSON);
+        post.setHeader(Headers.ACCEPT_STRING, APPLICATION_JSON);
 
         String json = "{                                                             \n" +
                 "  'id': 'addresses',                                                \n" +

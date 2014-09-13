@@ -236,7 +236,7 @@ public class HttpResponseProcessor extends Pipeline.Processor<ResourceResponse, 
          * Until accepted content is pushed to client socket in the background, another call to accept() will block and wait.
          * That means that pushing the whole body in one call to accept() will not block the calling thread.
          * Doing multiple calls to accept() may block the calling thread which means that a Resource performing such calling
-         * has to perform that from a non-io thread, which may be achieved by implementing a BlovkingResource interface, or by
+         * has to perform that from a non-io thread, which may be achieved by implementing a BlockingResource interface, or by
          * resource delegating execution to another executor / thread.
          *
          * @param exchange

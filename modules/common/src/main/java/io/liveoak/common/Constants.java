@@ -15,6 +15,8 @@ public class Constants {
 
     public static final int MAX_RESPONSE_SIZE = 100 * 1024;
 
+    public static final int MAX_REQUEST_SIZE = 100 * 1024;
+
     public static final int BUFFERS_PER_REGION = 50;
 
     public static final String HTTP_SERVER_EXCHANGE = "HTTP_SERVER_EXCHANGE";

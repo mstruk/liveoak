@@ -7,13 +7,14 @@ package io.liveoak.spi.resource.async;
 
 import io.liveoak.spi.MediaType;
 import io.liveoak.spi.RequestContext;
+import io.liveoak.spi.resource.BlockingResource;
 import io.liveoak.spi.state.ResourceState;
 
 /**
  * @author Bob McWhirter
  * @author <a href="http://community.jboss.org/people/kenfinni">Ken Finnigan</a>
  */
-public interface BinaryResource extends Resource {
+public interface BinaryResource extends Resource, BlockingResource {
 
     /**
      * Retrieve the {@link MediaType} of the binary resource.
@@ -39,10 +40,14 @@ public interface BinaryResource extends Resource {
     /**
      * Update this object's content.
      *
-     * @param state     The inbound binary representation of the content.
-     * @param responder To respond to the action.
+     * @param ctx RequestContext
+     * @param responder responder for sending a response
+     * @param content chunk of content
+     * @param offset position at which this content chunk is to be added
+     * @param complete true if this is the last chunk of content to complete the target size
+     * @throws Exception
      */
-    default void updateContent(RequestContext ctx, ResourceState state, Responder responder) throws Exception {
+    default void updateContent(RequestContext ctx, Responder responder, byte [] content, long offset, boolean complete) throws Exception {
         responder.updateNotSupported(this);
     }
 
@@ -53,15 +58,14 @@ public interface BinaryResource extends Resource {
      * may be part of the request.
      *
      * If resource will process the body, then it probably shouldn't yet write anything to responder, and just return true.
-     * When body is uploaded in its entirety #updateContent method will be invoked within the same context as current willProcessUpdate().
+     * As body is uploaded #updateContent method will be invoked for chunks of content multiple times until content is fully uploaded.
      *
      * @param ctx
-     * @param state
      * @param responder
      * @return
      * @throws Exception
      */
-    default boolean willProcessUpdate(RequestContext ctx, ResourceState state, Responder responder) throws Exception {
+    default boolean willProcessUpdate(RequestContext ctx, Responder responder) throws Exception {
         responder.updateNotSupported(this);
         return false;
     }

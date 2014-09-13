@@ -13,7 +13,9 @@ import io.liveoak.spi.ResourceErrorResponse;
 import io.liveoak.spi.ResourceResponse;
 import io.liveoak.spi.client.ClientResourceResponse;
 import io.liveoak.spi.resource.BlockingResource;
+import io.liveoak.spi.resource.async.BinaryResource;
 import io.liveoak.spi.state.ResourceState;
+import io.undertow.server.HttpServerExchange;
 
 /**
  * @author <a href="mailto:marko.strukelj@gmail.com">Marko Strukelj</a>
@@ -22,10 +24,12 @@ public class ResourceResponseBodyProcessor extends Pipeline.Processor<ResourceRe
 
 
     private final Executor workerPool;
+    private final HttpServerExchange exchange;
 
-    public ResourceResponseBodyProcessor(Pipeline pipeline, Executor workerPool) {
+    public ResourceResponseBodyProcessor(Pipeline pipeline, Executor workerPool, HttpServerExchange exchange) {
         super(pipeline);
         this.workerPool = workerPool;
+        this.exchange = exchange;
     }
 
     @Override
@@ -43,7 +47,7 @@ public class ResourceResponseBodyProcessor extends Pipeline.Processor<ResourceRe
                 List<Object> out = new LinkedList<>();
                 try {
                     encode(response, out);
-                    pipeline().proceed(out.get(0));
+                    pipeline().proceed(out.isEmpty() ? null : out.get(0));
                 } catch (Exception e) {
                     // TODO: log properly
                     e.printStackTrace();
@@ -57,7 +61,7 @@ public class ResourceResponseBodyProcessor extends Pipeline.Processor<ResourceRe
             };
 
             if (response.resource() instanceof BlockingResource) {
-                this.workerPool.execute(action);
+                exchange.dispatch(workerPool, action);
             } else {
                 action.run();
             }
