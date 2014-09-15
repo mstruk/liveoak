@@ -5,7 +5,7 @@
  */
 package io.liveoak.container.server;
 
-import io.liveoak.container.protocols.http.HttpResourceRequestHandler;
+import io.liveoak.container.undertow.HttpResourceRequestHandler;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.websockets.WebSocketConnectionCallback;

@@ -1,9 +1,14 @@
-package io.liveoak.container.protocols.http;
+package io.liveoak.container.undertow;
 
 import java.util.concurrent.Executor;
 
 import io.liveoak.common.codec.ResourceCodecManager;
+import io.liveoak.container.protocols.http.HttpRequestProcessor;
+import io.liveoak.container.protocols.http.HttpResponseProcessor;
+import io.liveoak.container.protocols.http.ResourceRequestProcessor;
+import io.liveoak.container.protocols.http.ResourceResponseBodyProcessor;
 import io.liveoak.container.tenancy.GlobalContext;
+import io.liveoak.container.Dispatcher;
 import io.liveoak.container.traversal.Pipeline;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -28,13 +33,15 @@ public class HttpResourceRequestHandler implements HttpHandler {
 
         Pipeline pipeline = new Pipeline();
 
+        Dispatcher dispatcher = new UndertowDispatcher(exchange, workerPool);
+
         Pipeline.Processor head = new HttpRequestProcessor(pipeline, codecManager);
         Pipeline.Processor tail = head;
 
-        Pipeline.Processor next = new ResourceRequestProcessor(pipeline, globalContext, workerPool, exchange);
+        Pipeline.Processor next = new ResourceRequestProcessor(pipeline, globalContext, dispatcher);
         tail = tail.next(next);
 
-        next = new ResourceResponseBodyProcessor(pipeline, workerPool, exchange);
+        next = new ResourceResponseBodyProcessor(pipeline, dispatcher);
         tail = tail.next(next);
 
         next = new HttpResponseProcessor(pipeline, exchange, codecManager);

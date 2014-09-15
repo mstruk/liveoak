@@ -6,6 +6,7 @@ import java.util.concurrent.Executor;
 import io.liveoak.common.codec.ResourceCodecManager;
 import io.liveoak.container.interceptor.InterceptorManagerImpl;
 import io.liveoak.container.protocols.PipelineConfigurator;
+import io.liveoak.container.service.LocalServerService;
 import io.liveoak.container.service.NotifierService;
 import io.liveoak.container.service.PipelineConfiguratorService;
 import io.liveoak.container.service.SubscriptionManagerService;
@@ -53,10 +54,10 @@ public class ServersBootstrappingService implements Service<Void> {
                 .addDependency(SOCKET_BINDING, InetSocketAddress.class, unsecureServer.bindingInjector())
                 .install();
 
-        //LocalServerService localServer = new LocalServerService();
-        //target.addService(server("local", false), localServer)
-        //        .addDependency(PIPELINE_CONFIGURATOR, PipelineConfigurator.class, localServer.pipelineConfiguratorInjector())
-        //        .install();
+        LocalServerService localServer = new LocalServerService();
+        target.addService(server("local", false), localServer)
+                .addDependency(PIPELINE_CONFIGURATOR, PipelineConfigurator.class, localServer.pipelineConfiguratorInjector())
+                .install();
 
 
         SubscriptionManagerService subscriptionManager = new SubscriptionManagerService();

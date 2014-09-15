@@ -9,6 +9,8 @@ package io.liveoak.spi;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.liveoak.spi.state.ResourceState;
+
 public interface RequestContext {
 
     Application application();
@@ -28,6 +30,8 @@ public interface RequestContext {
     ReturnFields returnFields();
 
     Sorting sorting();
+
+    ResourceState requestState();
 
     void dispose();
 
@@ -86,6 +90,11 @@ public interface RequestContext {
             return this;
         }
 
+        public Builder resourceState(ResourceState state) {
+            this.state = state;
+            return this;
+        }
+
         public RequestContext build() {
             return this;
         }
@@ -136,6 +145,11 @@ public interface RequestContext {
         }
 
         @Override
+        public ResourceState requestState() {
+            return this.state;
+        }
+
+        @Override
         public void dispose() {
             if (disposeTasks != null) {
                 for (Runnable r : disposeTasks) {
@@ -161,5 +175,6 @@ public interface RequestContext {
         private ResourcePath resourcePath;
         private RequestAttributes requestAttributes;
         private RequestType requestType;
+        private ResourceState state;
     }
 }

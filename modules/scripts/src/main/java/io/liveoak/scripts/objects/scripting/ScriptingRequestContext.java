@@ -10,6 +10,7 @@ import io.liveoak.spi.ResourcePath;
 import io.liveoak.spi.ReturnFields;
 import io.liveoak.spi.SecurityContext;
 import io.liveoak.spi.Sorting;
+import io.liveoak.spi.state.ResourceState;
 
 /**
  * @author <a href="mailto:mwringe@redhat.com">Matt Wringe</a>
@@ -85,6 +86,11 @@ public class ScriptingRequestContext implements RequestContext {
     @Override
     public Sorting sorting() {
         return sorting;
+    }
+
+    @Override
+    public ResourceState requestState() {
+        return original.requestState();
     }
 
     public void sorting(Sorting sorting) {

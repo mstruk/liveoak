@@ -1,14 +1,13 @@
 package io.liveoak.container.protocols.http;
 
 import java.util.LinkedList;
-import java.util.concurrent.Executor;
 
 import io.liveoak.container.tenancy.GlobalContext;
+import io.liveoak.container.Dispatcher;
 import io.liveoak.container.traversal.Pipeline;
 import io.liveoak.container.traversal.TraversingResponder;
 import io.liveoak.spi.ResourceRequest;
 import io.liveoak.spi.ResourceResponse;
-import io.undertow.server.HttpServerExchange;
 
 /**
  * @author <a href="mailto:marko.strukelj@gmail.com">Marko Strukelj</a>
@@ -16,14 +15,12 @@ import io.undertow.server.HttpServerExchange;
 public class ResourceRequestProcessor extends Pipeline.Processor<ResourceRequest, ResourceResponse> {
 
     private final GlobalContext globalContext;
-    private final Executor workerPool;
-    private final HttpServerExchange exchange;
+    private final Dispatcher dispatcher;
 
-    public ResourceRequestProcessor(Pipeline pipeline, GlobalContext globalContext, Executor workerPool, HttpServerExchange exchange) {
+    public ResourceRequestProcessor(Pipeline pipeline, GlobalContext globalContext, Dispatcher dispatcher) {
         super(pipeline);
         this.globalContext = globalContext;
-        this.workerPool = workerPool;
-        this.exchange = exchange;
+        this.dispatcher = dispatcher;
     }
 
     @Override
@@ -35,7 +32,7 @@ public class ResourceRequestProcessor extends Pipeline.Processor<ResourceRequest
         }
 
         LinkedList<Object> out = new LinkedList<>();
-        new TraversingResponder(exchange, workerPool, globalContext, request, out).resourceRead(globalContext);
+        new TraversingResponder(dispatcher, globalContext, request, out).resourceRead(globalContext);
 
         if (out.isEmpty()) {
             // what to do here?

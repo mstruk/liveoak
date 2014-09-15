@@ -14,6 +14,7 @@ import io.liveoak.spi.ResourcePath;
 import io.liveoak.spi.ReturnFields;
 import io.liveoak.spi.SecurityContext;
 import io.liveoak.spi.Sorting;
+import io.liveoak.spi.state.ResourceState;
 
 /**
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
@@ -74,6 +75,11 @@ public class RequestContextDecorator implements RequestContext {
     @Override
     public Sorting sorting() {
         return delegate.sorting();
+    }
+
+    @Override
+    public ResourceState requestState() {
+        return delegate.requestState();
     }
 
     @Override

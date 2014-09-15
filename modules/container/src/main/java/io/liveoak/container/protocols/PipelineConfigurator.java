@@ -12,10 +12,10 @@ import io.liveoak.container.ResourceHandler;
 import io.liveoak.container.auth.SecuredStompServerContext;
 import io.liveoak.container.interceptor.InterceptorHandler;
 import io.liveoak.container.interceptor.InterceptorManagerImpl;
+import io.liveoak.container.netty.NettyLocalResourceRequestHandler;
 import io.liveoak.container.protocols.http.CORSHandler;
 import io.liveoak.container.protocols.http.CORSPreflightOptionsHandler;
-import io.liveoak.container.protocols.http.HttpRequestBodyHandler;
-import io.liveoak.container.protocols.local.LocalResourceResponseEncoder;
+import io.liveoak.container.netty.NettyLocalResourceResponseEncoder;
 import io.liveoak.container.protocols.websocket.WebSocketHandshakerHandler;
 import io.liveoak.container.protocols.websocket.WebSocketStompFrameDecoder;
 import io.liveoak.container.protocols.websocket.WebSocketStompFrameEncoder;
@@ -181,7 +181,7 @@ public class PipelineConfigurator {
 
         //pipeline.addLast("http-resource-decoder", new HttpResourceRequestDecoder(this.codecManager));
         //pipeline.addLast("http-resource-encoder", new HttpResourceResponseEncoder(this.codecManager));
-        pipeline.addLast("http-request-body-handler", new HttpRequestBodyHandler());
+        //pipeline.addLast("http-request-body-handler", new HttpRequestBodyHandler());
         pipeline.addLast("interceptor", new InterceptorHandler("http", this.interceptorManager));
         pipeline.addLast("request-context-disposer", new RequestContextDisposerHandler());
 
@@ -197,13 +197,14 @@ public class PipelineConfigurator {
 
     public void setupLocal(ChannelPipeline pipeline) {
         //pipeline.addLast( new DebugHandler( "local-head" ) );
-        pipeline.addLast(new LocalResourceResponseEncoder(this.workerPool));
-        pipeline.addLast("interceptor", new InterceptorHandler("local", this.interceptorManager));
-        pipeline.addLast("request-context-disposer", new RequestContextDisposerHandler());
-        pipeline.addLast(new SubscriptionWatcher(this.subscriptionManager));
+        pipeline.addLast(new NettyLocalResourceResponseEncoder());
+        //pipeline.addLast("interceptor", new InterceptorHandler("local", this.interceptorManager));
+        //pipeline.addLast("request-context-disposer", new RequestContextDisposerHandler());
+        //pipeline.addLast(new SubscriptionWatcher(this.subscriptionManager));
         //pipeline.addLast(new ResourceStateHandler(this.workerPool));
-        pipeline.addLast(new ResourceHandler(this.globalContext, this.workerPool));
+        //pipeline.addLast(new ResourceHandler(this.globalContext, this.workerPool));
         //pipeline.addLast( new DebugHandler( "local-tail" ) );
+        pipeline.addLast(new NettyLocalResourceRequestHandler(this.globalContext));
     }
 
     private Client client;

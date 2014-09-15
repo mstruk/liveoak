@@ -15,6 +15,7 @@ import io.liveoak.spi.ResourcePath;
 import io.liveoak.spi.ReturnFields;
 import io.liveoak.spi.SecurityContext;
 import io.liveoak.spi.Sorting;
+import io.liveoak.spi.state.ResourceState;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -35,9 +36,10 @@ public class DefaultRequestContext implements RequestContext {
     private RequestAttributes requestAttributes;
     private Sorting sorting;
     private List<Runnable> disposeTasks;
+    private ResourceState requestState;
 
     public DefaultRequestContext(SecurityContext securityContext, Pagination pagination, ReturnFields returnFields, ResourceParams resourceParams,
-                                 ResourcePath resourcePath, RequestType requestType, RequestAttributes requestAttributes, Sorting sorting) {
+                                 ResourcePath resourcePath, RequestType requestType, RequestAttributes requestAttributes, Sorting sorting, ResourceState requestState) {
         this.securityContext = securityContext;
         this.pagination = pagination;
         this.returnFields = returnFields;
@@ -46,6 +48,7 @@ public class DefaultRequestContext implements RequestContext {
         this.requestType = requestType;
         this.requestAttributes = requestAttributes;
         this.sorting = sorting;
+        this.requestState = requestState;
     }
 
     @Override
@@ -111,6 +114,11 @@ public class DefaultRequestContext implements RequestContext {
     @Override
     public Sorting sorting() {
         return sorting;
+    }
+
+    @Override
+    public ResourceState requestState() {
+        return requestState;
     }
 
     @Override

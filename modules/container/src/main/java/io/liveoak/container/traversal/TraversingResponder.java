@@ -6,27 +6,24 @@
 package io.liveoak.container.traversal;
 
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.liveoak.container.Dispatcher;
 import io.liveoak.container.tenancy.GlobalContext;
 import io.liveoak.spi.RequestContext;
 import io.liveoak.spi.ResourceRequest;
 import io.liveoak.spi.resource.BlockingResource;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.resource.async.Responder;
-import io.liveoak.spi.state.ResourceState;
-import io.undertow.server.HttpServerExchange;
 
 /**
  * @author Bob McWhirter
  */
 public class TraversingResponder extends BaseResponder {
 
-    public TraversingResponder(HttpServerExchange exchange, Executor executor, GlobalContext globalContext, ResourceRequest inReplyTo, List<Object> out) {
-        super(inReplyTo, out);
-        this.exchange = exchange;
-        this.executor = executor;
+    public TraversingResponder(Dispatcher dispatcher, GlobalContext globalContext, ResourceRequest inReplyTo, List<Object> out) {
+        super(dispatcher, inReplyTo, out);
+        this.dispatcher = dispatcher;
         this.currentResource = globalContext;
         this.plan = new TraversalPlan(inReplyTo.requestType(), inReplyTo.resourcePath());
     }
@@ -59,11 +56,6 @@ public class TraversingResponder extends BaseResponder {
             }
 
             @Override
-            public ResourceState state() {
-                return inReplyTo().state();
-            }
-
-            @Override
             public Responder responder() {
                 return nextResponder;
             }
@@ -72,11 +64,16 @@ public class TraversingResponder extends BaseResponder {
             public List<Object> output() {
                 return TraversingResponder.this.output();
             }
+
+            @Override
+            public Dispatcher dispatcher() {
+                return dispatcher;
+            }
         };
 
         Runnable stepRunner = () -> {
             if (resource instanceof BlockingResource) {
-                exchange.dispatch(executor, () -> {
+                dispatcher.dispatch(() -> {
                     try {
                         step.execute(stepContext, resource);
                     } catch (Throwable t) {
@@ -147,7 +144,6 @@ public class TraversingResponder extends BaseResponder {
     private TraversalPlan plan;
     private int stepNumber = -1;
 
-    private Executor executor;
-    private HttpServerExchange exchange;
+    private Dispatcher dispatcher;
     private Resource currentResource;
 }

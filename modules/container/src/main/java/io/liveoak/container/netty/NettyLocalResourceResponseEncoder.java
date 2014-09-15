@@ -1,6 +1,4 @@
-package io.liveoak.container.protocols.local;
-
-import java.util.concurrent.Executor;
+package io.liveoak.container.netty;
 
 import io.liveoak.client.impl.ClientResourceResponseImpl;
 import io.liveoak.container.protocols.RequestCompleteEvent;
@@ -14,10 +12,9 @@ import io.netty.channel.ChannelPromise;
 /**
  * @author Bob McWhirter
  */
-public class LocalResourceResponseEncoder extends ChannelOutboundHandlerAdapter {
+public class NettyLocalResourceResponseEncoder extends ChannelOutboundHandlerAdapter {
 
-    public LocalResourceResponseEncoder(Executor workerPool) {
-        this.workerPool = workerPool;
+    public NettyLocalResourceResponseEncoder() {
     }
 
     @Override
@@ -79,6 +76,4 @@ public class LocalResourceResponseEncoder extends ChannelOutboundHandlerAdapter 
         ctx.fireUserEventTriggered(new RequestCompleteEvent(response.requestId()));
 
     }
-
-    private Executor workerPool;
 }

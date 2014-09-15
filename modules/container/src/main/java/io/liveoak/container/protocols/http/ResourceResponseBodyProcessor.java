@@ -2,20 +2,18 @@ package io.liveoak.container.protocols.http;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import io.liveoak.client.impl.ClientResourceResponseImpl;
 import io.liveoak.common.DefaultResourceErrorResponse;
 import io.liveoak.common.codec.driver.RootEncodingDriver;
 import io.liveoak.common.codec.state.ResourceStateEncoder;
+import io.liveoak.container.Dispatcher;
 import io.liveoak.container.traversal.Pipeline;
 import io.liveoak.spi.ResourceErrorResponse;
 import io.liveoak.spi.ResourceResponse;
 import io.liveoak.spi.client.ClientResourceResponse;
 import io.liveoak.spi.resource.BlockingResource;
-import io.liveoak.spi.resource.async.BinaryResource;
 import io.liveoak.spi.state.ResourceState;
-import io.undertow.server.HttpServerExchange;
 
 /**
  * @author <a href="mailto:marko.strukelj@gmail.com">Marko Strukelj</a>
@@ -23,13 +21,11 @@ import io.undertow.server.HttpServerExchange;
 public class ResourceResponseBodyProcessor extends Pipeline.Processor<ResourceResponse, ResourceResponse> {
 
 
-    private final Executor workerPool;
-    private final HttpServerExchange exchange;
+    private final Dispatcher dispatcher;
 
-    public ResourceResponseBodyProcessor(Pipeline pipeline, Executor workerPool, HttpServerExchange exchange) {
+    public ResourceResponseBodyProcessor(Pipeline pipeline, Dispatcher dispatcher) {
         super(pipeline);
-        this.workerPool = workerPool;
-        this.exchange = exchange;
+        this.dispatcher = dispatcher;
     }
 
     @Override
@@ -61,7 +57,7 @@ public class ResourceResponseBodyProcessor extends Pipeline.Processor<ResourceRe
             };
 
             if (response.resource() instanceof BlockingResource) {
-                exchange.dispatch(workerPool, action);
+                dispatcher.dispatch(action);
             } else {
                 action.run();
             }

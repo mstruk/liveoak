@@ -1,11 +1,11 @@
 package io.liveoak.container.traversal;
 
+import io.liveoak.container.Dispatcher;
 import io.liveoak.spi.RequestContext;
 import io.liveoak.spi.RequestType;
 import io.liveoak.spi.ResourcePath;
 import io.liveoak.spi.resource.async.Resource;
 import io.liveoak.spi.resource.async.Responder;
-import io.liveoak.spi.state.ResourceState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,10 +72,10 @@ public class TraversalPlan {
     public static interface StepContext {
         RequestContext requestContext();
 
-        ResourceState state();
-
         Responder responder();
 
         List<Object> output();
+
+        Dispatcher dispatcher();
     }
 }

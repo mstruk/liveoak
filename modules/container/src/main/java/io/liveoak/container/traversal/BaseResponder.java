@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.liveoak.common.DefaultResourceErrorResponse;
 import io.liveoak.common.DefaultResourceResponse;
+import io.liveoak.container.Dispatcher;
 import io.liveoak.spi.ResourceErrorResponse;
 import io.liveoak.spi.ResourceRequest;
 import io.liveoak.spi.ResourceResponse;
@@ -21,17 +22,16 @@ import org.jboss.logging.Logger;
  */
 public class BaseResponder implements Responder {
 
-    private static String RESOURCE_READ_DECODER = "http-resource-decoder";
-
     private static Logger log = Logger.getLogger(BaseResponder.class);
 
-    public BaseResponder(ResourceRequest inReplyTo, List<Object> out) {
+    public BaseResponder(Dispatcher dispatcher, ResourceRequest inReplyTo, List<Object> out) {
+        this.dispatcher = dispatcher;
         this.inReplyTo = inReplyTo;
         this.out = out;
     }
 
     BaseResponder createBaseResponder() {
-        return new BaseResponder(this.inReplyTo, this.out);
+        return new BaseResponder(this.dispatcher, this.inReplyTo, this.out);
     }
 
     ResourceRequest inReplyTo() {
@@ -158,10 +158,11 @@ public class BaseResponder implements Responder {
         // noop
     }
 
-    protected List<Object> output() {
+    public List<Object> output() {
         return out;
     }
 
+    private final Dispatcher dispatcher;
     private final ResourceRequest inReplyTo;
     private final List<Object> out;
 }
