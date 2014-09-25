@@ -2,6 +2,7 @@ package io.liveoak.scripts;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 
@@ -190,5 +191,9 @@ public class BaseScriptTestCase extends AbstractHTTPResourceTestCase {
         }
 
         return null;
+    }
+
+    public JsonNode toJSON(String value) throws IOException {
+        return ObjectMapperFactory.create().readTree(value);
     }
 }
