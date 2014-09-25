@@ -9,7 +9,7 @@ If you want to override default database connection settings you can use:
 
     mvn -pl modules/pgsql clean install "-DargLine=-Dpgsql.db=tests -Dpgsql.server=localhost -Dpgsql.user=test -Dpgsql.password=test"
     
-These the default values, so you can use the short version above.
+These are the default values, so you can use the short version above.
 
 You may first have to prepare the database 'test', and user 'test'. Specifically, user 'test' needs to have a permission to create 
  schemas.
